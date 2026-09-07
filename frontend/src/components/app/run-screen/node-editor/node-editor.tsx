@@ -83,7 +83,8 @@ const StyledFormColumn = styled.div`
   flex-direction: column;
   width: max-content;
   flex: 0 0 auto;
-  max-width: 70vw;
+  max-width: 50vw;
+  min-width: 0;
   height: 100%;
   overflow-y: auto;
   overflow-x: auto;

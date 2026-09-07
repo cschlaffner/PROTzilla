@@ -25,7 +25,7 @@ import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
-import { API_ROOT } from "../../../constants";
+import { API_ROOT, DOCUMENTATION_URL } from "../../../constants";
 import { H3 } from "../../core/shared/text";
 
 const StyledNavbar = styled(Navbar)`
@@ -355,7 +355,7 @@ export const RunScreen: React.FC = () => {
         memoryUsage={runData.memory_usage}
         onNavigateHome={() => void navigate("/")}
         onOpenSettings={() => void navigate("/")}
-        onOpenHelp={() => window.open("https://github.com/cschlaffner/PROTzilla/wiki/User-Guide")}
+        onOpenHelp={() => window.open(DOCUMENTATION_URL)}
       />
 
       <StyledCardRow>

@@ -21,6 +21,8 @@ import { useNavigate } from "react-router-dom";
 import { styled, useTheme } from "styled-components";
 import "bootstrap/dist/css/bootstrap.min.css";
 
+import { DOCUMENTATION_URL } from "../../../constants";
+
 const StyledNavbar = styled(Navbar)`
   position: sticky;
   top: 0;
@@ -400,7 +402,7 @@ export const IndexScreen: React.FC = () => {
         showRunInformation={false}
         onNavigateHome={() => void navigate("/")}
         onOpenSettings={() => void navigate("/")}
-        onOpenHelp={() => window.open("https://github.com/cschlaffner/PROTzilla/wiki/User-Guide")}
+        onOpenHelp={() => window.open(DOCUMENTATION_URL)}
       />
 
       <StyledContainer>

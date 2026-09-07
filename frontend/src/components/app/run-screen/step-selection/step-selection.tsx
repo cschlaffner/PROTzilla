@@ -13,12 +13,13 @@ import {
   ToggleableButton,
 } from "@protzilla/core";
 import { useOutsidePress, useToggleableState } from "@protzilla/hooks";
-import { color, shadow, size, spacing } from "@protzilla/theme";
+import { color, size, spacing } from "@protzilla/theme";
 import { callApi, callApiWithParameters, SectionIDs } from "@protzilla/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { StepSelectionProps } from "./step-selection.props.ts";
+import { DOCUMENTATION_URL } from "../../../../constants";
 
 const sectionModes = {
   [SectionIDs.Importing]: "Importing",
@@ -36,7 +37,6 @@ export interface StepItem {
   display_name: string;
   operation: string;
   operation_display_name: string;
-  method_description: string;
   calculation_status: string;
 }
 
@@ -44,6 +44,34 @@ interface CustomStepTemplate {
   name: string;
   step_name: string;
 }
+
+const documentationPages: Partial<Record<string, string>> = {
+  ArbitraryCSVImport: "importing",
+  CustomPythonStep: "custom-steps",
+  DiannImport: "importing/dia-nn-import",
+  FastaImport: "importing/fasta-protein-sequence-import",
+  FilterByProteinsCount: "data-preprocessing/filter-samples-proteins-per-sample",
+  FilterProteinsByNumberOfValuesPerGroup: "data-preprocessing/filter-proteins-values-per-group",
+  ImputationByNormalDistributionSampling:
+    "data-preprocessing/imputation-normal-distribution-sampling",
+  MetadataColumnAssignment: "importing/metadata-column-assignment",
+  MsFraggerImport: "importing/ms-fragger-combined-protein-import",
+  NormalisationByTotalSum: "data-preprocessing/normalisation-total-sum",
+  PeptideImport: "importing/maxquant-peptide-import",
+};
+
+const stepDocumentationUrl = (step: StepItem) => {
+  const slug = step.display_name
+    .toLowerCase()
+    .replace("ptm diff. exp.", "ptm differential expression")
+    .replace("diff. expression", "differential expression")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  const page =
+    documentationPages[step.method_name] ??
+    `${step.section.replace(/_/g, "-")}/${slug}${step.section === "importing" ? "-import" : ""}`;
+  return `${DOCUMENTATION_URL}step-documentation/${page}/`;
+};
 
 const stepOperationIconMap: Partial<Record<string, string>> = {
   classification: "stepClassification",
@@ -145,14 +173,6 @@ const HelpButton = styled(Button)`
     height: ${size("smallIcon")};
     ${iconColor("protzillaGray")}
   }
-`;
-
-const StepDescriptionDropdown = styled.div`
-  box-shadow: ${shadow("tooltip")};
-  margin-top: ${spacing("verySmall")};
-  padding: ${spacing("small")};
-  background-color: ${color("backgroundOffset")};
-  max-width: 95%;
 `;
 
 const OperationIconWrapper = styled.div`
@@ -280,9 +300,6 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
     if (section === SectionIDs.Custom) void fetchCustomSteps().then(setCustomSteps);
   };
 
-  // - - - Step description dropdown - - -
-  const [visibleDescription, setVisibleDescription] = useState<string | null>(null);
-
   // - - - Render - - -
   return (
     <div style={{ display: "flex", flexDirection: "column", margin: "0 5px" }}>
@@ -339,7 +356,6 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                       isActive={listMode === mode}
                       onPress={() => {
                         selectList(mode);
-                        setVisibleDescription(null);
                       }}
                       text={buttonLabel}
                     ></SectionButton>
@@ -386,19 +402,8 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                                   />
                                   <HelpButton
                                     icon={"help"}
-                                    onPress={() => {
-                                      setVisibleDescription(
-                                        visibleDescription === item.method_name
-                                          ? null
-                                          : item.method_name,
-                                      );
-                                    }}
+                                    onPress={() => window.open(stepDocumentationUrl(item))}
                                   />
-                                  {visibleDescription === item.method_name && (
-                                    <StepDescriptionDropdown>
-                                      {item.method_description}
-                                    </StepDescriptionDropdown>
-                                  )}
                                 </StepWrapper>
                               ))}
                             </div>
@@ -430,17 +435,8 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                             />
                             <HelpButton
                               icon={"help"}
-                              onPress={() => {
-                                setVisibleDescription(
-                                  visibleDescription === item.method_name ? null : item.method_name,
-                                );
-                              }}
+                              onPress={() => window.open(stepDocumentationUrl(item))}
                             />
-                            {visibleDescription === item.method_name && (
-                              <StepDescriptionDropdown>
-                                {item.method_description}
-                              </StepDescriptionDropdown>
-                            )}
                           </StepWrapper>
                         ))}
                       </div>
