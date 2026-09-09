@@ -2580,11 +2580,11 @@ class DistanceMatrixBasedOnCorrelationMatrix(DataAnalysisStep):
                     options=DistanceFromCorrelation,
                 ),
                 CheckboxField(
-                    name="hdbscan_suitable", label="Suitable for HDBSCAN", value=True
+                    name="hdbscan_suitable", label="Suitable for HDBSCAN*", value=True
                 ),
                 InfoField(
                     name="info_clipping_distance_matrix",
-                    label="To make the matrix suitable for the HDBSCAN step, the correlation matrix is clipped between -0.999999 and 0.999999 before applying the distance transformation. "
+                    label="To make the matrix suitable for the HDBSCAN* step, the correlation matrix is clipped between -0.999999 and 0.999999 before applying the distance transformation. "
                     "This results in no distances of exactly 0 since the dbcv calculation cannot deal with distances of exactly 0.",
                 ),
             ],
@@ -2597,14 +2597,14 @@ class HDBSCAN(DataAnalysisStep):
         DataKey.DBCV_SCORES_DF,
         DataKey.CLUSTER_CORRELATION_MEANS_DF,
     ]
-    display_name = "HDBSCAN"
+    display_name = "HDBSCAN*"
     operation = "Clustering For Protein-Protein-Interactions"
-    method_description = "Executes HDBSCAN clustering on a distance matrix."
+    method_description = "Executes HDBSCAN* clustering on a distance matrix."
     calc_method = staticmethod(hdbscan_for_ppi)
 
     def create_form(self):
         return Form(
-            label="HDBSCAN for Protein-Protein-Interactions",
+            label="HDBSCAN* for Protein-Protein-Interactions",
             input_fields=[
                 NumberField(
                     name="min_cluster_size",
@@ -2742,7 +2742,7 @@ class GetClustersBasedOnIntraClusterCorrelationMean(ClusterSelectionStep):
 
 class GetClustersBasedOnDBCV(ClusterSelectionStep):
     display_name = "Get Clusters Based On DBCV"
-    method_description = "Takes a clustering that was calculated by HDBSCAN and returns heatmaps and STRING networks for all clusters that have a DBCV score above a certain threshold."
+    method_description = "Takes a clustering that was calculated by HDBSCAN* and returns heatmaps and STRING networks for all clusters that have a DBCV score above a certain threshold."
     calc_method = staticmethod(get_clusters_based_on_dbcv)
 
     def create_form(self):

@@ -349,7 +349,7 @@ def hdbscan_for_ppi(
     protein_df: pd.DataFrame,
     min_cluster_size: int,
 ) -> dict:
-    """Runs the HDBSCAN algorithm (from the hdbscan library) for clustering the proteins that are likely to interact into groups.
+    """Runs the HDBSCAN* algorithm (from the hdbscan library) for clustering the proteins that are likely to interact into groups.
     :param distance_matrix_df: Dataframe containing the distance matrix.
     :param correlation_matrix_df: Dataframe containing the original correlation matrix.
     :param protein_df: Dataframe used for the correlation matrix. Used to determine the original number of features.
