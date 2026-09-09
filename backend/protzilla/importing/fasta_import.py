@@ -110,15 +110,21 @@ def fasta_generation(protein_df: pd.DataFrame) -> dict[str, pd.DataFrame | list 
 
         except requests.Timeout:
             return dict(
-                messages=dict(
-                    level=logging.ERROR, msg="At least one uniprot request timed out."
-                )
+                messages=[
+                    dict(
+                        level=logging.ERROR,
+                        msg="At least one uniprot request timed out.",
+                    )
+                ]
             )
         except Exception:
             return dict(
-                messages=dict(
-                    level=logging.ERROR, msg="The uniprot rest api was not reachable."
-                )
+                messages=[
+                    dict(
+                        level=logging.ERROR,
+                        msg="The uniprot rest api was not reachable.",
+                    )
+                ]
             )
     messages = []
     if len(protein_ids) != len(protein_ids_from_input):

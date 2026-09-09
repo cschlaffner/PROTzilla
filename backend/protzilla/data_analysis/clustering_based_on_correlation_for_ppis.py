@@ -302,16 +302,11 @@ def get_cluster_sizes_histogram(labels: pd.Series) -> Figure:
 
 
 def get_cluster_correlation_means_histogram(
-    cluster_correlation_means: list[float], clusters_of_size_one_omitted: bool = False
+    cluster_correlation_means: list[float],
 ) -> Figure:
     fig_correlation_means, ax_correlation_means = plt.subplots()
     ax_correlation_means.hist(cluster_correlation_means, bins=40)
-    if clusters_of_size_one_omitted:
-        ax_correlation_means.set_title(
-            "Histogram of Intra Cluster Correlation Means (clusters with exactly one protein are omitted)"
-        )
-    else:
-        ax_correlation_means.set_title("Histogram of Intra Cluster Correlation Means")
+    ax_correlation_means.set_title("Histogram of Intra Cluster Correlation Means")
     ax_correlation_means.set_xlabel("Mean Correlation")
     ax_correlation_means.set_ylabel("Number of clusters with certain mean correlation")
     plt.close(fig_correlation_means)
@@ -341,9 +336,7 @@ def get_cluster_silhouette_histogram(
         silhouette_per_cluster.loc[label] = silhouette_scores_per_sample[mask].mean()
     fig_silhouette, ax_silhouette = plt.subplots()
     ax_silhouette.hist(silhouette_per_cluster, bins=40)
-    ax_silhouette.set_title(
-        "Histogram of Silhouette Scores (clusters with exactly one protein are omitted)"
-    )
+    ax_silhouette.set_title("Histogram of Silhouette Scores")
     ax_silhouette.set_xlabel("Silhouette Score")
     ax_silhouette.set_ylabel("Number of clusters with certain Silhouette Score")
     plt.close(fig_silhouette)
@@ -1145,9 +1138,7 @@ def k_medoids_for_ppi(
         histogram_correlation_means=OutputItem(
             OutputType.PNG_BASE64,
             fig_to_base64(
-                get_cluster_correlation_means_histogram(
-                    cluster_correlation_means, clusters_of_size_one_omitted=True
-                )
+                get_cluster_correlation_means_histogram(cluster_correlation_means)
             ),
         ),
         histogram_cluster_sizes=OutputItem(

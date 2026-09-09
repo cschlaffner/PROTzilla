@@ -2620,6 +2620,20 @@ class ClusterSelectionStep(DataAnalysisStep):
     output_keys = []
     operation = "Clustering For Protein-Protein-Interactions"
     score_name = ""
+    species = pd.read_csv(
+        "backend/uploads/supported_organisms_by_STRING/species.v12.0.txt", sep="\t"
+    )
+    TaxIds = Enum(
+        "TaxIds",
+        {
+            "_9606": "9606 Homo sapiens"
+        }  # ToDo: necessary because dropdowns are a bit broken and the default always sets to the first entry in the enum
+        | {
+            f'_{row["#taxon_id"]}': f"{row['#taxon_id']} {row['official_name_NCBI']}"
+            for _, row in species.iterrows()
+            if str(row["#taxon_id"]) != 9606
+        },
+    )
 
     def create_form(self):
         return Form(
@@ -2645,7 +2659,7 @@ class ClusterSelectionStep(DataAnalysisStep):
                 DropdownField(
                     name="taxonomic_identifier",
                     label="Taxonomic identifier of organism",
-                    options=self.get_STRING_supported_taxonomic_identifiers(),
+                    options=self.TaxIds,
                 ),
                 DropdownField(
                     name="network_flavor",
@@ -2700,7 +2714,7 @@ class ClusterSelectionStep(DataAnalysisStep):
             "generate_STRING_networks"
         ].value
 
-    def get_STRING_supported_taxonomic_identifiers(self):
+    """def get_STRING_supported_taxonomic_identifiers(self):
         species = pd.read_csv(
             "backend/uploads/supported_organisms_by_STRING/species.v12.0.txt", sep="\t"
         )
@@ -2709,10 +2723,10 @@ class ClusterSelectionStep(DataAnalysisStep):
             options.append(
                 Option(
                     label=f"{row['#taxon_id']} {row['official_name_NCBI']}",
-                    value=row["#taxon_id"],
+                    value=str(row["#taxon_id"]),
                 )
             )
-        return options
+        return options"""
 
 
 class GetClustersBasedOnIntraClusterCorrelationMean(ClusterSelectionStep):
