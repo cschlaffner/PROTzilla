@@ -1,4 +1,4 @@
-current_step_id: s00012_KMedoidsClustering
+current_step_id: s00001_MaxQuantImport
 df_mode: Standard
 graph_edges:
 - !!python/tuple
@@ -42,6 +42,21 @@ graph_edges:
   - source_handle: fasta_df
     target_handle: fasta_df
 - !!python/tuple
+  - s00004_GenerateFastaWithUniProt
+  - s00015_GetClustersBasedOnSilhouette
+  - source_handle: fasta_df
+    target_handle: fasta_df
+- !!python/tuple
+  - s00004_GenerateFastaWithUniProt
+  - s00013_GetClustersBasedOnIntraClusterCorrelationMean
+  - source_handle: fasta_df
+    target_handle: fasta_df
+- !!python/tuple
+  - s00004_GenerateFastaWithUniProt
+  - s00014_GetClustersBasedOnIntraClusterCorrelationMean
+  - source_handle: fasta_df
+    target_handle: fasta_df
+- !!python/tuple
   - s00005_CorrelationMatrix
   - s00006_DistanceMatrixBasedOnCorrelationMatrix
   - source_handle: correlation_matrix_df
@@ -74,6 +89,21 @@ graph_edges:
 - !!python/tuple
   - s00005_CorrelationMatrix
   - s00008_GetClustersBasedOnIntraClusterCorrelationMean
+  - source_handle: correlation_matrix_df
+    target_handle: correlation_matrix_df
+- !!python/tuple
+  - s00005_CorrelationMatrix
+  - s00015_GetClustersBasedOnSilhouette
+  - source_handle: correlation_matrix_df
+    target_handle: correlation_matrix_df
+- !!python/tuple
+  - s00005_CorrelationMatrix
+  - s00013_GetClustersBasedOnIntraClusterCorrelationMean
+  - source_handle: correlation_matrix_df
+    target_handle: correlation_matrix_df
+- !!python/tuple
+  - s00005_CorrelationMatrix
+  - s00014_GetClustersBasedOnIntraClusterCorrelationMean
   - source_handle: correlation_matrix_df
     target_handle: correlation_matrix_df
 - !!python/tuple
@@ -102,6 +132,16 @@ graph_edges:
   - source_handle: cluster_labels_df
     target_handle: cluster_labels_df
 - !!python/tuple
+  - s00010_HDBSCAN
+  - s00013_GetClustersBasedOnIntraClusterCorrelationMean
+  - source_handle: cluster_correlation_means_df
+    target_handle: cluster_correlation_means_df
+- !!python/tuple
+  - s00010_HDBSCAN
+  - s00013_GetClustersBasedOnIntraClusterCorrelationMean
+  - source_handle: cluster_labels_df
+    target_handle: cluster_labels_df
+- !!python/tuple
   - s00011_HierarchicalClustering
   - s00009_GetClustersBasedOnSilhouette
   - source_handle: cluster_labels_df
@@ -112,6 +152,16 @@ graph_edges:
   - source_handle: silhouette_scores_df
     target_handle: silhouette_scores_df
 - !!python/tuple
+  - s00011_HierarchicalClustering
+  - s00014_GetClustersBasedOnIntraClusterCorrelationMean
+  - source_handle: cluster_correlation_means_df
+    target_handle: cluster_correlation_means_df
+- !!python/tuple
+  - s00011_HierarchicalClustering
+  - s00014_GetClustersBasedOnIntraClusterCorrelationMean
+  - source_handle: cluster_labels_df
+    target_handle: cluster_labels_df
+- !!python/tuple
   - s00012_KMedoidsClustering
   - s00008_GetClustersBasedOnIntraClusterCorrelationMean
   - source_handle: cluster_correlation_means_df
@@ -121,7 +171,17 @@ graph_edges:
   - s00008_GetClustersBasedOnIntraClusterCorrelationMean
   - source_handle: cluster_labels_df
     target_handle: cluster_labels_df
-id_clock: 12
+- !!python/tuple
+  - s00012_KMedoidsClustering
+  - s00015_GetClustersBasedOnSilhouette
+  - source_handle: cluster_labels_df
+    target_handle: cluster_labels_df
+- !!python/tuple
+  - s00012_KMedoidsClustering
+  - s00015_GetClustersBasedOnSilhouette
+  - source_handle: silhouette_scores_df
+    target_handle: silhouette_scores_df
+id_clock: 15
 steps:
 - form_inputs:
     aggregation_method: Sum
@@ -134,7 +194,7 @@ steps:
   visual_data:
     node_position:
       x: 164.29950514186356
-      y: -429.7518972909771
+      y: -458.83047161314374
 - form_inputs:
     graph_type: Boxplot
     graph_type_quantities: Pie chart
@@ -147,14 +207,14 @@ steps:
   visual_data:
     node_position:
       x: 289.5869877866474
-      y: -294.12699564168537
+      y: -365.2029147393454
 - form_inputs: {}
   instance_identifier: s00004_GenerateFastaWithUniProt
   type: GenerateFastaWithUniProt
   visual_data:
     node_position:
       x: -28.14486996143353
-      y: -291.5435642602135
+      y: -365.13781512515686
 - form_inputs:
     method: pearson
   instance_identifier: s00005_CorrelationMatrix
@@ -162,7 +222,7 @@ steps:
   visual_data:
     node_position:
       x: 151.0219267198844
-      y: -171.62251482186002
+      y: -271.2029147393454
 - form_inputs:
     distance_method: sqrt(2*(1-correlation))
     hdbscan_suitable: true
@@ -171,7 +231,7 @@ steps:
   visual_data:
     node_position:
       x: 148.0219267198844
-      y: -62.69679391188228
+      y: -177.4885970525251
 - form_inputs:
     generate_STRING_networks: false
     generate_alphafold_queries: false
@@ -186,8 +246,8 @@ steps:
   type: GetClustersBasedOnDBCV
   visual_data:
     node_position:
-      x: -156.0
-      y: 223.30908026753536
+      x: -166.0
+      y: 196.56515864016984
 - form_inputs:
     generate_STRING_networks: false
     generate_alphafold_queries: false
@@ -202,8 +262,8 @@ steps:
   type: GetClustersBasedOnIntraClusterCorrelationMean
   visual_data:
     node_position:
-      x: 463.99999999999994
-      y: 217.30320658812695
+      x: 470.41849389332367
+      y: 297.7427101358177
 - form_inputs:
     generate_STRING_networks: false
     generate_alphafold_queries: false
@@ -218,16 +278,16 @@ steps:
   type: GetClustersBasedOnSilhouette
   visual_data:
     node_position:
-      x: 154.0
-      y: 218.37748517813998
+      x: 151.8152408399856
+      y: 192.52480135285094
 - form_inputs:
     min_cluster_size: 2
   instance_identifier: s00010_HDBSCAN
   type: HDBSCAN
   visual_data:
     node_position:
-      x: -150.82602442670515
-      y: 91.73291752412297
+      x: -165.18475916001447
+      y: 92.86243282726895
 - form_inputs:
     deep_split: 3
     linkage_method: average
@@ -236,8 +296,8 @@ steps:
   type: HierarchicalClustering
   visual_data:
     node_position:
-      x: 157.79349389332367
-      y: 93.00940530857002
+      x: 150.66849389332367
+      y: 90.90263189873161
 - form_inputs:
     average_expected_cluster_size: 25
     continue_subsampling_as_long_as_silhouette_improves: true
@@ -253,3 +313,51 @@ steps:
     node_position:
       x: 466.79349389332367
       y: 89.30320658812695
+- form_inputs:
+    generate_STRING_networks: false
+    generate_alphafold_queries: false
+    min_required_string_score: 150
+    model_seed: -1
+    network_flavor: null
+    only_include_alphafold_compatible_clusters: true
+    output_name: ''
+    taxonomic_identifier: null
+    threshold: 0.7
+  instance_identifier: s00013_GetClustersBasedOnIntraClusterCorrelationMean
+  type: GetClustersBasedOnIntraClusterCorrelationMean
+  visual_data:
+    node_position:
+      x: -160.79296875
+      y: 297.32828565706416
+- form_inputs:
+    generate_STRING_networks: false
+    generate_alphafold_queries: false
+    min_required_string_score: 150
+    model_seed: -1
+    network_flavor: null
+    only_include_alphafold_compatible_clusters: true
+    output_name: ''
+    taxonomic_identifier: null
+    threshold: 0.7
+  instance_identifier: s00014_GetClustersBasedOnIntraClusterCorrelationMean
+  type: GetClustersBasedOnIntraClusterCorrelationMean
+  visual_data:
+    node_position:
+      x: 151.896484375
+      y: 298.16062102010665
+- form_inputs:
+    generate_STRING_networks: false
+    generate_alphafold_queries: false
+    min_required_string_score: 150
+    model_seed: -1
+    network_flavor: null
+    only_include_alphafold_compatible_clusters: true
+    output_name: ''
+    taxonomic_identifier: null
+    threshold: 0.7
+  instance_identifier: s00015_GetClustersBasedOnSilhouette
+  type: GetClustersBasedOnSilhouette
+  visual_data:
+    node_position:
+      x: 464.896484375
+      y: 193.51617179554728
