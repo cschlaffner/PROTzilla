@@ -120,6 +120,8 @@ def GO_enrichment_bar_plot(
     fig.update_layout(yaxis=dict(autorange="reversed"))
 
     return [fig]
+
+
 # --8<-- [end:GO_enrichment_bar_plot]
 
 
@@ -236,6 +238,8 @@ def GO_enrichment_dot_plot(
     else:
         msg = "Invalid x_axis_type value"
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
+
+
 # --8<-- [end:GO_enrichment_dot_plot]
 
 
@@ -325,6 +329,8 @@ def gsea_dot_plot(
     except ValueError as e:
         msg = f"No data to plot when applying cutoff {cutoff}. Check your input data or choose a different cutoff."
         return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])
+
+
 # --8<-- [end:gsea_dot_plot]
 
 
@@ -389,4 +395,6 @@ def gsea_enrichment_plot(
     except Exception as e:
         msg = f"Could not plot enrichment plot for term {term_name}."
         return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])
+
+
 # --8<-- [end:gsea_enrichment_plot]

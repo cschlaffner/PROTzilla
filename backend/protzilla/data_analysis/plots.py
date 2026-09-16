@@ -601,4 +601,6 @@ def roc_plot(
     )
 
     return dict(plots=[fig])
+
+
 # --8<-- [end:roc_plot]

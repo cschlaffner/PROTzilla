@@ -302,6 +302,8 @@ def GO_analysis_with_STRING(
         return dict(messages=out_messages, enrichment_df=merged_df)
 
     return {"enrichment_df": merged_df}
+
+
 # --8<-- [end:GO_analysis_with_STRING]
 
 
@@ -709,6 +711,8 @@ def GO_analysis_with_Enrichr(
         "enrichment_df": enriched,
         "messages": out_messages,
     }
+
+
 # --8<-- [end:GO_analysis_with_Enrichr]
 
 
@@ -913,4 +917,6 @@ def GO_analysis_offline(
         out_dict["filtered_groups"] = filtered_groups
         return out_dict
     return out_dict
+
+
 # --8<-- [end:GO_analysis_offline]

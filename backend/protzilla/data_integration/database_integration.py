@@ -82,6 +82,8 @@ def add_uniprot_data(
                 new_column.append(";".join(map(str, group_values)))
         protein_df[field] = new_column
     return {"protein_df": protein_df}
+
+
 # --8<-- [end:add_uniprot_data]
 
 
@@ -117,4 +119,6 @@ def gene_mapping(
         protein_groups, database_names, use_biomart=use_biomart
     )
     return mapping_results
+
+
 # --8<-- [end:gene_mapping]

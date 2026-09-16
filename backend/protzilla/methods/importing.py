@@ -73,6 +73,8 @@ def custom_python_step(code: str, selected_outputs: list[str], **inputs):
         )
 
     return result
+
+
 # --8<-- [end:custom_python_step]
 
 

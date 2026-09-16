@@ -235,6 +235,8 @@ def gsea_preranked(
         out_dict["filtered_groups"] = filtered_groups
         out_dict["messages"] = [dict(level=logging.WARNING, msg=msg)]
     return out_dict
+
+
 # --8<-- [end:gsea_preranked]
 
 
@@ -495,4 +497,6 @@ def gsea(
         out_dict["filtered_groups"] = filtered_groups
         out_dict["messages"] = [dict(level=logging.WARNING, msg=msg)]
     return out_dict
+
+
 # --8<-- [end:gsea]

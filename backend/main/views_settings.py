@@ -37,6 +37,7 @@ from backend.protzilla.constants.paths import (
     MCP_SERVER_PATH,
 )
 
+
 def _litellm_value(value):
     return getattr(value, "value", str(value))
 

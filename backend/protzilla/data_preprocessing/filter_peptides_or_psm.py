@@ -27,6 +27,8 @@ def by_pep_value(
     filtered_peptides_or_psm_list = filtered["Sequence"].unique().tolist()
 
     return peptide_or_psm_df, filtered_peptides_or_psm_list
+
+
 # --8<-- [end:by_pep_value]
 
 

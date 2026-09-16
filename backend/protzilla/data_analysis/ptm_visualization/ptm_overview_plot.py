@@ -90,4 +90,6 @@ def create_overview_ptm_visualization(
     fig, messages = overview_plotter.create_overview_plot()
 
     return dict(plots=[fig], messages=messages)
+
+
 # --8<-- [end:create_overview_ptm_visualization]

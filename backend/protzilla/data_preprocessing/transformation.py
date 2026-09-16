@@ -182,4 +182,6 @@ def by_scaling(
         )
 
     return dict(protein_df=transformed_df, peptide_df=transformed_peptide_df)
+
+
 # --8<-- [end:by_scaling]

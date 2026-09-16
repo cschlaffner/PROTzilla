@@ -182,4 +182,6 @@ def umap(
     ).reset_index()
 
     return dict(embedded_data=embedded_data)
+
+
 # --8<-- [end:umap]

@@ -119,4 +119,6 @@ def create_details_ptm_visualization(
     fig, messages = plotter.create_details_plot()
 
     return dict(plots=[fig], messages=messages)
+
+
 # --8<-- [end:create_details_ptm_visualization]

@@ -69,4 +69,6 @@ def metadata_filter_by_samples(
     """
     meta_filtered = metadata_df[metadata_df[sample_column].isin(protein_df["Sample"])]
     return dict(metadata_df=meta_filtered)
+
+
 # --8<-- [end:metadata_filter_by_samples]

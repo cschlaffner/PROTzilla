@@ -132,4 +132,6 @@ def anova(
         filtered_proteins=filtered_proteins,
         messages=messages,
     )
+
+
 # --8<-- [end:anova]

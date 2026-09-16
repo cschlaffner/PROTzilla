@@ -30,4 +30,6 @@ def evaluate_classification_model(model, protein_df, metadata_df, scoring):
     scores_df = pd.DataFrame.from_dict(scores, orient="index", columns=["Score"])
     scores_df = scores_df.reset_index().rename(columns={"index": "Metric"})
     return dict(scores_df=scores_df)
+
+
 # --8<-- [end:evaluate_classification_model]
