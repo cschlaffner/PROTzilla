@@ -25,6 +25,7 @@ class SimpleImputerStrategyType(StrEnum):
 
 class ImputationByNormalDistributionSamplingStrategyType(StrEnum):
     PER_PROTEIN = "perProtein"
+    PER_SAMPLE = "perSample"
     PER_DATASET = "perDataset"
 
 

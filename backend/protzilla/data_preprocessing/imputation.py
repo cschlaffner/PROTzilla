@@ -5,18 +5,18 @@ import pandas as pd
 from plotly.graph_objs import Figure
 from sklearn.impute import KNNImputer, SimpleImputer
 
+from backend.protzilla.constants.option_types import (
+    ImputationByNormalDistributionSamplingStrategyType,
+    SimpleImputerStrategyType,
+)
 from backend.protzilla.data_preprocessing.plots import (
     create_bar_plot,
     create_box_plots,
     create_histograms,
     create_pie_plot,
 )
-from backend.protzilla.utilities.utilities import default_intensity_column
 from backend.protzilla.utilities.transform_dfs import long_to_wide, wide_to_long
-from backend.protzilla.constants.option_types import (
-    SimpleImputerStrategyType,
-    ImputationByNormalDistributionSamplingStrategyType,
-)
+from backend.protzilla.utilities.utilities import default_intensity_column
 
 
 def flag_invalid_values(df: pd.DataFrame, messages: list) -> dict:
@@ -276,36 +276,190 @@ def by_min_per_dataset(
 
 
 # --8<-- [start:by_normal_distribution_sampling]
+SUMMARY_COLUMNS = [
+    "strategy",
+    "group_type",
+    "group",
+    "n_observed",
+    "n_missing",
+    "n_imputed",
+    "observed_mean",
+    "observed_sd",
+    "impute_mean",
+    "impute_sd",
+    "down_shift",
+    "scaling_factor",
+    "log_transform",
+    "seed",
+]
+
+
+def _observed_values(values: pd.Series, log_transform: bool) -> pd.Series:
+    """
+    Returns the measured values of a group on the scale that is sampled on.
+
+    :param values: the values of a group, missing values included
+    :param log_transform: whether the values are log10-transformed before sampling
+    :return: the measured values, log10-transformed if requested
+    """
+    observed = values.dropna()
+    return np.log10(observed) if log_transform else observed
+
+
+def _sampling_parameters(
+    observed: pd.Series,
+    down_shift: float,
+    scaling_factor: float,
+    force_positive: bool = False,
+) -> tuple[float, float]:
+    """
+    Calculates mean and standard deviation of the normal distribution that is sampled
+    for a group, by shifting and scaling the statistics of its measured values.
+
+    :param observed: the measured values of the group, on the scale that is sampled on
+    :param down_shift: how many standard deviations the mean of the distribution is
+        shifted by
+    :param scaling_factor: the factor the standard deviation of the distribution is
+        scaled by
+    :param force_positive: whether the mean is kept on the positive side of the log10
+        scale, only meaningful in combination with log_transform
+    :return: the mean and the standard deviation of the distribution to sample
+    """
+    sampling_mean = observed.mean() + down_shift * observed.std()
+    sampling_std = observed.std() * scaling_factor
+    if force_positive:
+        sampling_mean = max(0, sampling_mean)
+
+    return sampling_mean, sampling_std
+
+
+def _sampled_imputation_values(
+    sampling_mean: float,
+    sampling_std: float,
+    number_of_values: int,
+    log_transform: bool,
+    rng: np.random.Generator,
+    force_positive: bool = False,
+) -> np.ndarray:
+    """
+    Draws values from the normal distribution that was defined for a group.
+
+    :param sampling_mean: the mean of the distribution to sample
+    :param sampling_std: the standard deviation of the distribution to sample
+    :param number_of_values: the number of values to draw
+    :param log_transform: whether the drawn values are transformed back from log10 scale
+    :param rng: the random number generator the values are drawn from
+    :param force_positive: whether the drawn values are kept on the positive side of the
+        log10 scale, only meaningful in combination with log_transform
+    :return: the values to impute
+    """
+    values = rng.normal(
+        loc=sampling_mean,
+        scale=sampling_std,
+        size=number_of_values,
+    )
+    if force_positive:
+        values = abs(values)
+
+    return 10**values if log_transform else values
+
+
+def _summary_row(
+    group_type: str,
+    group: str,
+    observed: pd.Series,
+    number_of_nans: int,
+    number_of_imputed: int,
+    sampling_mean: float,
+    sampling_std: float,
+    parameters: dict,
+) -> dict:
+    """
+    Describes how one group was imputed, so that the sampled distributions can be
+    inspected after the calculation.
+
+    :param group_type: what the groups of the chosen strategy are, e.g. "Sample"
+    :param group: the name of the group, e.g. the name of a sample
+    :param observed: the measured values of the group, on the scale that is sampled on
+    :param number_of_nans: how many values of the group were missing
+    :param number_of_imputed: how many values of the group were imputed, which is 0 if
+        the group did not offer enough data to sample from
+    :param sampling_mean: the mean of the sampled distribution, NaN if nothing was
+        imputed
+    :param sampling_std: the standard deviation of the sampled distribution, NaN if
+        nothing was imputed
+    :param parameters: the user-defined parameters shared by all groups
+    :return: one row of the imputation summary
+    """
+    return {
+        "strategy": parameters["strategy"],
+        "group_type": group_type,
+        "group": group,
+        "n_observed": len(observed),
+        "n_missing": int(number_of_nans),
+        "n_imputed": int(number_of_imputed),
+        "observed_mean": observed.mean() if len(observed) > 0 else np.nan,
+        "observed_sd": observed.std() if len(observed) > 1 else np.nan,
+        "impute_mean": sampling_mean,
+        "impute_sd": sampling_std,
+        "down_shift": parameters["down_shift"],
+        "scaling_factor": parameters["scaling_factor"],
+        "log_transform": parameters["log_transform"],
+        "seed": parameters["seed"],
+    }
+
+
 def by_normal_distribution_sampling(
     protein_df: pd.DataFrame,
     strategy: str = "perProtein",
     down_shift: float = 0,
     scaling_factor: float = 1,
+    log_transform: bool = True,
+    seed: int = -1,
 ) -> dict:
     """
     A function to perform imputation via sampling of a normal distribution
     defined by the existing datapoints and user-defined parameters for down-
-    shifting and scaling. Imputes missing values for each protein  taking into
-    account data from each protein or the whole dataset. The data is log-
-    transformed before sampling from the normal distribution and transformed
-    back afterwards, meaning only values > 0 are imputed.
+    shifting and scaling. Imputes missing values for each protein, for each sample
+    or for the whole dataset. By default the data is log-transformed before sampling
+    from the normal distribution and transformed back afterwards, meaning only
+    values > 0 are imputed. Data that is already on a log scale, and therefore may
+    contain negative values, should be imputed with log_transform disabled.
     Will not impute if insufficient data is available for sampling.
+
     :param protein_df: the dataframe that should be filtered in
     long format
     :param strategy: which strategy to use for definition of the normal
-    distribution to be sampled. Can be "perProtein", "perDataset" or "most_frequent"
+    distribution to be sampled. Can be "perProtein", "perSample" or "perDataset"
     :param down_shift: a factor defining how many dataset standard deviations
     to shift the mean of the normal distribution used for imputation.
     Default: 0 (no shift)
     :param scaling_factor: a factor determining how the variance of the normal
     distribution used for imputation is scaled compared to dataset.
     Default: 1 (no scaling)
-    :return: returns an imputed dataframe in typical protzilla long format\
-    a list of messages
+    :param log_transform: whether the intensities are log10-transformed before sampling
+    and transformed back afterwards. Disable this for data that is already on a log
+    scale. Default: True
+    :param seed: the seed of the random number generator, which makes the imputation
+    reproducible. A negative seed draws different values on every calculation.
+    Default: -1 (not seeded)
+    :return: returns an imputed dataframe in typical protzilla long format, a summary
+    of the sampled distributions and a list of messages
     """
     assert strategy in {
         item.value for item in ImputationByNormalDistributionSamplingStrategyType
     }
+
+    # a local generator keeps the global random state of other steps untouched
+    rng = np.random.default_rng(seed) if seed >= 0 else np.random
+    parameters = dict(
+        strategy=strategy,
+        down_shift=down_shift,
+        scaling_factor=scaling_factor,
+        log_transform=log_transform,
+        seed=seed,
+    )
+    summary_rows = []
 
     if strategy == ImputationByNormalDistributionSamplingStrategyType.PER_PROTEIN.value:
         transformed_df = long_to_wide(protein_df)
@@ -313,64 +467,152 @@ def by_normal_distribution_sampling(
         for protein_grp in transformed_df.columns:
             number_of_nans = transformed_df[protein_grp].isnull().sum()
 
-            if number_of_nans > len(transformed_df[protein_grp]) - 2:
-                continue
-
             location_of_nans = transformed_df[protein_grp].isnull()
             indices_of_nans = location_of_nans[location_of_nans].index
+            observed = _observed_values(transformed_df[protein_grp], log_transform)
 
-            protein_grp_mean = np.log10(transformed_df[protein_grp]).mean(skipna=True)
-            protein_grp_std = np.log10(transformed_df[protein_grp]).std(skipna=True)
-            sampling_mean = protein_grp_mean + down_shift * protein_grp_std
-            sampling_std = protein_grp_std * scaling_factor
+            if number_of_nans > len(transformed_df[protein_grp]) - 2:
+                summary_rows.append(
+                    _summary_row(
+                        "Protein ID",
+                        protein_grp,
+                        observed,
+                        number_of_nans,
+                        0,
+                        np.nan,
+                        np.nan,
+                        parameters,
+                    )
+                )
+                continue
 
-            # calculate log-transformed values to be imputed
-            log_impute_values = np.random.normal(
-                loc=sampling_mean,
-                scale=sampling_std,
-                size=number_of_nans,
+            sampling_mean, sampling_std = _sampling_parameters(
+                observed, down_shift, scaling_factor
             )
-            # transform log-transformed values to be imputed back to normal scale and round to nearest integer
-            impute_values = 10**log_impute_values
-
-            # zip indices of NaN values with values to be imputed together as a Series, such that fillna can be used
-            impute_value_series = pd.Series(impute_values, index=indices_of_nans)
-            transformed_df[protein_grp].fillna(impute_value_series, inplace=True)
+            transformed_df.loc[indices_of_nans, protein_grp] = (
+                _sampled_imputation_values(
+                    sampling_mean,
+                    sampling_std,
+                    number_of_nans,
+                    log_transform,
+                    rng,
+                )
+            )
+            summary_rows.append(
+                _summary_row(
+                    "Protein ID",
+                    protein_grp,
+                    observed,
+                    number_of_nans,
+                    number_of_nans,
+                    sampling_mean,
+                    sampling_std,
+                    parameters,
+                )
+            )
 
         imputed_df = wide_to_long(transformed_df, protein_df)
-        return flag_invalid_values(imputed_df, [])
+
+    elif (
+        strategy == ImputationByNormalDistributionSamplingStrategyType.PER_SAMPLE.value
+    ):
+        # determine column for protein intensities
+        intensity_type = default_intensity_column(protein_df)
+        imputed_df = protein_df.copy()
+
+        # iterate over all samples
+        for sample in imputed_df["Sample"].unique():
+            values = imputed_df.loc[imputed_df["Sample"] == sample, intensity_type]
+            location_of_nans = values.isnull()
+            indices_of_nans = location_of_nans[location_of_nans].index
+            number_of_nans = len(indices_of_nans)
+            observed = _observed_values(values, log_transform)
+
+            # a sample without at least two measured values offers no standard
+            # deviation to sample from, so it is left untouched
+            if number_of_nans == 0 or len(observed) < 2:
+                summary_rows.append(
+                    _summary_row(
+                        "Sample",
+                        sample,
+                        observed,
+                        number_of_nans,
+                        0,
+                        np.nan,
+                        np.nan,
+                        parameters,
+                    )
+                )
+                continue
+
+            sampling_mean, sampling_std = _sampling_parameters(
+                observed, down_shift, scaling_factor
+            )
+            imputed_df.loc[indices_of_nans, intensity_type] = (
+                _sampled_imputation_values(
+                    sampling_mean,
+                    sampling_std,
+                    number_of_nans,
+                    log_transform,
+                    rng,
+                )
+            )
+            summary_rows.append(
+                _summary_row(
+                    "Sample",
+                    sample,
+                    observed,
+                    number_of_nans,
+                    number_of_nans,
+                    sampling_mean,
+                    sampling_std,
+                    parameters,
+                )
+            )
 
     else:
         # determine column for protein intensities
         intensity_type = default_intensity_column(protein_df)
+        imputed_df = protein_df.copy()
 
-        number_of_nans = protein_df[intensity_type].isnull().sum()
-        assert number_of_nans <= len(protein_df[intensity_type]) - 2
+        number_of_nans = imputed_df[intensity_type].isnull().sum()
+        assert number_of_nans <= len(imputed_df[intensity_type]) - 2
 
-        location_of_nans = protein_df[intensity_type].isnull()
+        location_of_nans = imputed_df[intensity_type].isnull()
         indices_of_nans = location_of_nans[location_of_nans].index
+        observed = _observed_values(imputed_df[intensity_type], log_transform)
 
-        dataset_mean = np.log10(protein_df[intensity_type]).mean()
-        dataset_std = np.log10(protein_df[intensity_type]).std()
-        sampling_mean = max(0, dataset_mean + down_shift * dataset_std)
-        sampling_std = dataset_std * scaling_factor
-
-        # calculate log-transformed values to be imputed
-        log_impute_values = abs(
-            np.random.normal(
-                loc=sampling_mean,
-                scale=sampling_std,
-                size=number_of_nans,
+        # the original behaviour keeps dataset-wide imputed intensities positive,
+        # which is only meaningful on the log10 scale
+        sampling_mean, sampling_std = _sampling_parameters(
+            observed, down_shift, scaling_factor, force_positive=log_transform
+        )
+        imputed_df.loc[indices_of_nans, intensity_type] = _sampled_imputation_values(
+            sampling_mean,
+            sampling_std,
+            number_of_nans,
+            log_transform,
+            rng,
+            force_positive=log_transform,
+        )
+        summary_rows.append(
+            _summary_row(
+                "Dataset",
+                "all",
+                observed,
+                number_of_nans,
+                number_of_nans,
+                sampling_mean,
+                sampling_std,
+                parameters,
             )
         )
-        # transform log-transformed values to be imputed back to normal scale and round to nearest integer
-        impute_values = 10**log_impute_values
 
-        # zip indices of NaN values with values to be imputed together as a Series, such that fillna can be used
-        impute_value_series = pd.Series(impute_values, index=indices_of_nans)
-        protein_df[intensity_type].fillna(impute_value_series, inplace=True)
-
-        return flag_invalid_values(protein_df, [])
+    outputs = flag_invalid_values(imputed_df, [])
+    outputs["imputation_summary_df"] = pd.DataFrame(
+        summary_rows, columns=SUMMARY_COLUMNS
+    )
+    return outputs
 
 
 # --8<-- [end:by_normal_distribution_sampling]

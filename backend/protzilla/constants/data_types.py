@@ -14,6 +14,7 @@ class DataKey(StrEnum):
     FASTA_DF = "fasta_df"
     SIGNIFICANT_PROTEINS_DF = "significant_proteins_df"
     PTM_DF = "ptm_df"
+    IMPUTATION_SUMMARY_DF = "imputation_summary_df"
     DIFFERENTIALLY_EXPRESSED_PROTEINS_DF = "differentially_expressed_proteins_df"
     DIFFERENTIALLY_EXPRESSED_PTM_DF = "differentially_expressed_ptm_df"
     CORRECTED_P_VALUES_DF = "corrected_p_values_df"

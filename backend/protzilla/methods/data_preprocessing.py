@@ -1044,7 +1044,8 @@ class ImputationByKNN(ImputationStep):
 
 class ImputationByNormalDistributionSampling(ImputationStep):
     display_name = "Imputation: Normal Dist. Sampling"
-    method_description = "Imputation methods include normal distribution sampling per protein or per dataset"
+    method_description = "Imputation methods include normal distribution sampling per protein, per sample or per dataset"
+    output_keys = [DataKey.PROTEIN_DF, DataKey.IMPUTATION_SUMMARY_DF]
 
     def create_form(self):
         return Form(
@@ -1072,6 +1073,20 @@ class ImputationByNormalDistributionSampling(ImputationStep):
                     min=0,
                     max=1,
                     step=0.1,
+                ),
+                CheckboxField(
+                    name="log_transform",
+                    label="Log-transform intensities before sampling (disable for data that is already on a log scale)",
+                    value=True,
+                ),
+                NumberField(
+                    name="seed",
+                    label="Random seed (-1 draws different values on every calculation)",
+                    value=-1,
+                    min=-1,
+                    max=2**31 - 1,
+                    step=1,
+                    hasStepButtons=True,
                 ),
                 # pyright says + is not supported between Sequences
                 # but lists are not covariant
