@@ -22,6 +22,7 @@ services:
       - "./backend:/home/prot/zilla/backend:Z" # :Z is required for SELinux and should be ignored everywhere else
       - "./mcp-server:/home/prot/zilla/mcp-server:Z"
       - "./runner_cli.py:/home/prot/zilla/runner_cli.py:Z"
+      - "./pytest.ini:/home/prot/zilla/pytest.ini:Z"
       - "uniprot:/home/prot/zilla/backend/user_data/external_data/uniprot"
     ports:
       - "5678:5678"
