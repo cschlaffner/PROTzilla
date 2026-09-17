@@ -34,6 +34,11 @@ class BarAndPieChart(StrEnum):
     PIE_CHART = "Pie chart"
 
 
+class GroupValueRequirement(StrEnum):
+    EVERY_GROUP = "In every group"
+    AT_LEAST_ONE_GROUP = "In at least one group"
+
+
 class BoxAndHistogramGraph(StrEnum):
     BOXPLOT = "Boxplot"
     HISTOGRAM = "Histogram"

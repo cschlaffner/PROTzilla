@@ -100,7 +100,7 @@ class FilterProteinsBySamplesMissing(FilterProteinsStep):
 
 class FilterProteinsByNumberOfValuesPerGroup(FilterProteinsStep):
     display_name = "Filter Proteins: #Values / Group"
-    method_description = "Filter proteins based on the minimum amount of samples with different values in each group"
+    method_description = "Filter proteins based on the minimum amount of samples with non-missing values per group"
 
     def create_form(self):
         return Form(
@@ -108,10 +108,20 @@ class FilterProteinsByNumberOfValuesPerGroup(FilterProteinsStep):
             input_fields=[
                 NumberField(
                     name="min_amount",
-                    label="Amount of minimum present samples per group with different values",
+                    label="Amount of minimum present samples per group with non-missing values",
                     value=1,
                     min=0,
                     step=1,
+                ),
+                DropdownField(
+                    name="group_column",
+                    label="Column in metadata containing the group labels",
+                ),
+                DropdownField(
+                    name="mode",
+                    label="Groups in which the minimum amount has to be reached",
+                    value=GroupValueRequirement.EVERY_GROUP.value,
+                    options=GroupValueRequirement,
                 ),
                 DropdownField(
                     name="graph_type",
@@ -121,6 +131,18 @@ class FilterProteinsByNumberOfValuesPerGroup(FilterProteinsStep):
                 ),
             ],
         )
+
+    def modify_form(self, run: Run) -> None:
+        group_column_field: DropdownField = self.form["group_column"]
+        metadata_df = self.get_input(run.steps, DataKey.METADATA_DF)
+        if metadata_df is not None:
+            group_column_field.set_options(
+                form_helper.to_choices(
+                    [column for column in metadata_df.columns if column != "Sample"]
+                )
+            )
+        else:
+            group_column_field.set_options([])
 
     calc_method = staticmethod(filter_proteins.by_number_of_values_per_group)
     plot_method = staticmethod(filter_proteins.by_number_of_values_per_group_plot)

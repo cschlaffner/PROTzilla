@@ -1,9 +1,9 @@
 import pandas as pd
 
+from backend.protzilla.constants.option_types import GroupValueRequirement
 from backend.protzilla.data_preprocessing.plots import create_bar_plot, create_pie_plot
-from backend.protzilla.utilities.utilities import default_intensity_column
-
 from backend.protzilla.utilities.transform_dfs import long_to_wide
+from backend.protzilla.utilities.utilities import default_intensity_column
 
 
 # --8<-- [start:by_samples_missing]
@@ -46,30 +46,56 @@ def by_number_of_values_per_group(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
     min_amount: int = 1,
+    group_column: str = "Group",
+    mode: str = GroupValueRequirement.EVERY_GROUP,
 ) -> dict:
     """
-    This function filters proteins based on the amount of samples with unique values per group. Only proteins with
-    at least the specified amount of samples in each group are kept.
+    This function filters proteins based on the amount of samples with non-missing values per group. Depending on the
+    selected mode, a protein is kept if it reaches the minimum amount in every group or in at least one group.
 
     :param protein_df: the protein dataframe that should be filtered
     :param metadata_df: the metadata dataframe from which to take group labels
-    :param min_amount: defines the minimum amount of samples the protein has to have a unique intensity in (inclusive)
+    :param min_amount: defines the minimum amount of samples the protein has to have a non-missing intensity in
+        (inclusive)
+    :param group_column: the column of the metadata dataframe that holds the group labels
+    :param mode: whether the minimum amount has to be reached in every group or in at least one group
     :return: returns the filtered df as a Dataframe and a dict with a list of Protein IDs that were discarded
         and a list of Protein IDs that were kept
     """
+    if group_column not in metadata_df.columns:
+        raise ValueError(
+            f"The column {group_column} does not exist in the metadata. "
+            f"Available columns are: {', '.join(map(str, metadata_df.columns))}"
+        )
 
     intensity_name = default_intensity_column(protein_df)
-    labeled_df = pd.merge(protein_df, metadata_df, on="Sample", how="left")
-    unique_ratio_count = (
-        labeled_df.groupby(["Protein ID", "Group"])[intensity_name]
-        .nunique()
-        .groupby("Protein ID")
-        .min()
+    labeled_df = pd.merge(
+        protein_df, metadata_df[["Sample", group_column]], on="Sample", how="left"
     )
-    remaining_proteins_list = unique_ratio_count[
-        unique_ratio_count >= min_amount
+    non_missing_df = labeled_df[labeled_df[intensity_name].notna()]
+
+    # groups without any value, proteins without any value and proteins that only occur in samples
+    # missing from the metadata are dropped by the groupby, so the counts are reindexed onto all
+    # proteins and groups to count them as zero instead of losing them silently
+    all_proteins = pd.Index(protein_df["Protein ID"].unique()).sort_values()
+    all_groups = labeled_df[group_column].dropna().unique()
+    values_per_group = (
+        non_missing_df.groupby(["Protein ID", group_column])[intensity_name]
+        .size()
+        .unstack(fill_value=0)
+        .reindex(columns=all_groups, fill_value=0)
+        .reindex(index=all_proteins, fill_value=0)
+    )
+
+    if mode == GroupValueRequirement.AT_LEAST_ONE_GROUP:
+        values_per_protein = values_per_group.max(axis=1)
+    else:
+        values_per_protein = values_per_group.min(axis=1)
+
+    remaining_proteins_list = values_per_protein[
+        values_per_protein >= min_amount
     ].index.tolist()
-    filtered_proteins_list = unique_ratio_count.drop(
+    filtered_proteins_list = values_per_protein.drop(
         remaining_proteins_list
     ).index.tolist()
     filtered_df = protein_df[(protein_df["Protein ID"].isin(remaining_proteins_list))]
