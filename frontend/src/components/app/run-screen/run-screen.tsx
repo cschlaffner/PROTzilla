@@ -348,7 +348,15 @@ export const RunScreen: React.FC = () => {
   ].filter(Boolean) as { name: string; value: React.ReactNode }[];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+        height: "100vh",
+        overflow: "hidden",
+      }}
+    >
       <StyledNavbar
         showRunInformation={true}
         title={runName}
@@ -371,7 +379,7 @@ export const RunScreen: React.FC = () => {
             }}
           />
         </StyledFlexColumn>
-        <StyledFlexColumn style={{ flex: 1 }}>
+        <StyledFlexColumn style={{ flex: 1, minWidth: 0 }}>
           {components.length ? (
             <StyledCol>
               <SwitchCard

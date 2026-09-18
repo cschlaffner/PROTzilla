@@ -37,6 +37,9 @@ import type { NodeEditorProps } from "./node-editor.props";
 const nodeTypes: NodeTypes = { step: StepNode };
 
 const MIN_FLOW_WIDTH = 320;
+const MIN_FORM_WIDTH = 240;
+// Keep at least this much horizontal space for the output (plots/tables) section.
+const MIN_OUTPUT_WIDTH = 200;
 
 const StyledRow = styled(FlexRow)`
   gap: ${spacing("verySmall")};
@@ -63,7 +66,6 @@ const StyledDivider = styled.div`
   position: relative;
   flex: 0 0 6px;
   align-self: stretch;
-  margin-right: ${spacing("small")};
   touch-action: none;
 
   &::after {
@@ -81,9 +83,9 @@ const StyledDivider = styled.div`
 const StyledFormColumn = styled.div`
   display: flex;
   flex-direction: column;
-  width: max-content;
+  box-sizing: border-box;
+  width: 25vw;
   flex: 0 0 auto;
-  max-width: 50vw;
   min-width: 0;
   height: 100%;
   overflow-y: auto;
@@ -124,8 +126,10 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
   const notify = useNotification();
 
   const editorRowRef = useRef<HTMLDivElement>(null);
-  const isResizingRef = useRef(false);
+  const formColumnRef = useRef<HTMLDivElement>(null);
+  const resizingColumnRef = useRef<"flow" | "form" | null>(null);
   const [flowWidth, setFlowWidth] = useState<number | null>(null);
+  const [formWidth, setFormWidth] = useState<number | null>(null);
 
   //
   // State
@@ -295,24 +299,41 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
     [navigateOrRefreshSteps, notify, runName],
   );
 
-  const onDividerPointerDown = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    isResizingRef.current = true;
-    event.currentTarget.setPointerCapture(event.pointerId);
-    event.preventDefault();
-  }, []);
+  const onDividerPointerDown = useCallback(
+    (column: "flow" | "form") => (event: React.PointerEvent<HTMLDivElement>) => {
+      resizingColumnRef.current = column;
+      event.currentTarget.setPointerCapture(event.pointerId);
+      event.preventDefault();
+    },
+    [],
+  );
 
   const onDividerPointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    if (!isResizingRef.current || !editorRowRef.current) return;
-    const rowRect = editorRowRef.current.getBoundingClientRect();
-    const nextWidth = Math.max(event.clientX - rowRect.left, MIN_FLOW_WIDTH);
-    setFlowWidth(nextWidth);
+    const column = resizingColumnRef.current;
+    if (column === "flow" && editorRowRef.current) {
+      const rowRect = editorRowRef.current.getBoundingClientRect();
+      setFlowWidth(Math.max(event.clientX - rowRect.left, MIN_FLOW_WIDTH));
+    } else if (column === "form" && formColumnRef.current) {
+      const formRect = formColumnRef.current.getBoundingClientRect();
+      const maxWidth = window.innerWidth - formRect.left - MIN_OUTPUT_WIDTH;
+      setFormWidth(Math.max(Math.min(event.clientX - formRect.left, maxWidth), MIN_FORM_WIDTH));
+    }
   }, []);
 
   const onDividerPointerUp = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    if (!isResizingRef.current) return;
-    isResizingRef.current = false;
+    if (!resizingColumnRef.current) return;
+    resizingColumnRef.current = null;
     event.currentTarget.releasePointerCapture(event.pointerId);
+    // Plotly's resize handler only listens to window resizes, so notify plots in the
+    // output section that their available width has changed.
+    window.dispatchEvent(new Event("resize"));
   }, []);
+
+  const dividerHandlers = {
+    onPointerMove: onDividerPointerMove,
+    onPointerUp: onDividerPointerUp,
+    onPointerCancel: onDividerPointerUp,
+  };
 
   const removeCurrentConnection = useCallback(() => {
     if (!selectedEdge) return;
@@ -469,16 +490,14 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
       </StyledFlowColumn>
 
       <StyledDivider
-        onPointerDown={onDividerPointerDown}
-        onPointerMove={onDividerPointerMove}
-        onPointerUp={onDividerPointerUp}
-        onPointerCancel={onDividerPointerUp}
+        onPointerDown={onDividerPointerDown("flow")}
+        {...dividerHandlers}
         role="separator"
         aria-orientation="vertical"
         aria-label="Resize node editor"
       />
 
-      <StyledFormColumn>
+      <StyledFormColumn ref={formColumnRef} style={formWidth ? { width: formWidth } : undefined}>
         <BackendForm
           runName={runName}
           buttonText={buttonText}
@@ -496,6 +515,14 @@ export const NodeEditor: React.FC<NodeEditorProps> = ({
           runData={runData}
         />
       </StyledFormColumn>
+
+      <StyledDivider
+        onPointerDown={onDividerPointerDown("form")}
+        {...dividerHandlers}
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize step form"
+      />
     </StyledRow>
   );
 };
