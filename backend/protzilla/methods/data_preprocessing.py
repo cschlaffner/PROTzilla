@@ -1079,12 +1079,10 @@ class ImputationByNormalDistributionSampling(ImputationStep):
                     value=ImputationByNormalDistributionSamplingStrategyType.PER_PROTEIN.value,
                     options=ImputationByNormalDistributionSamplingStrategyType,
                 ),
-                NumberField(
+                FloatField(
                     name="down_shift",
                     label="Downshift",
-                    value=-1,
-                    min=-10,
-                    max=10,
+                    value=-1.0,
                     step=1,
                     hasStepButtons=True,
                 ),
@@ -1092,8 +1090,6 @@ class ImputationByNormalDistributionSampling(ImputationStep):
                     name="scaling_factor",
                     label="Scaling factor",
                     value=0.5,
-                    min=0,
-                    max=1,
                     step=0.1,
                 ),
                 CheckboxField(
