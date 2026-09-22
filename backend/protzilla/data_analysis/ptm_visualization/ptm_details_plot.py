@@ -3,6 +3,7 @@ import types
 from pathlib import Path
 
 import pandas as pd
+from protein_sequencing.details_plot import DetailsPlotter
 
 from backend.main.views_helper import load_settings_from_file
 from backend.protzilla.constants.colors import PLOT_COLOR_SEQUENCE
@@ -10,11 +11,16 @@ from backend.protzilla.constants.paths import (
     CUSTOM_PTM_SETTINGS_FILE_STEM,
     DEFAULT_PTM_SETTINGS_FILE_STEM,
 )
-from backend.protzilla.data_analysis.ptm_visualization.ptm_vis_utils import (
-    preprocess_files,
-    get_group_dict_from_df,
+from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
+    get_modification_table,
 )
-from protein_sequencing.details_plot import DetailsPlotter
+from backend.protzilla.data_analysis.ptm_visualization.ptm_vis_utils import (
+    add_group_counts_to_modifications,
+    get_group_dict_from_df,
+    get_plotted_sites_from_columns,
+    preprocess_files,
+    preserve_modification_file,
+)
 
 
 def get_details_plot_config_module(
@@ -89,6 +95,36 @@ def get_details_plot_config_module(
     return plot_config_module
 
 
+def _get_modification_table_with_group_counts(
+    config_module: types.ModuleType,
+    out_dir: Path,
+    fasta_file_path: Path,
+    modification_file: Path,
+    plotter: DetailsPlotter,
+    plot_config_module: types.ModuleType,
+) -> pd.DataFrame:
+    # Re-running the filter is cheap (it only reads the modification file) and guarantees that the
+    # table reports exactly the sites the details plot just drew.
+    filtered_df = plotter.filter_relevant_modification_sites(
+        modification_file, plot_config_module.MODIFICATION_THRESHOLD
+    )
+
+    modification_df = get_modification_table(
+        config_module=config_module,
+        out_dir=out_dir,
+        fasta_file_path=fasta_file_path,
+        mod_file=modification_file,
+        include_label=True,
+    )
+    return add_group_counts_to_modifications(
+        modification_df,
+        modification_file,
+        # create_details_plot drops the groups that have no data from the config
+        groups=list(plot_config_module.GROUPS),
+        plotted_sites=get_plotted_sites_from_columns(filtered_df),
+    )
+
+
 # --8<-- [start:create_details_ptm_visualization]
 def create_details_ptm_visualization(
     psm_df: pd.DataFrame,
@@ -97,6 +133,7 @@ def create_details_ptm_visualization(
     regions_file_path: Path,
     metadata_df: pd.DataFrame,
     metadata_column: str,
+    output_modification_df: pd.DataFrame | None = None,
 ) -> dict:
     config_module, out_dir = preprocess_files(
         psm_df=psm_df,
@@ -116,9 +153,25 @@ def create_details_ptm_visualization(
         input_file=str(fasta_file_path),
         output_path=str(out_dir),
     )
-    fig, messages = plotter.create_details_plot()
+    ptm_input_file = next(
+        input_file
+        for input_type, input_file in plot_config_module.INPUT_FILES.values()
+        if input_type == "PTM"
+    )
+    with preserve_modification_file(ptm_input_file) as modification_file:
+        fig, messages = plotter.create_details_plot()
 
-    return dict(plots=[fig], messages=messages)
+        outputs = dict(plots=[fig], messages=messages)
+        if output_modification_df is not None:
+            outputs["modification_df"] = _get_modification_table_with_group_counts(
+                config_module=config_module,
+                out_dir=out_dir,
+                fasta_file_path=fasta_file_path,
+                modification_file=modification_file,
+                plotter=plotter,
+                plot_config_module=plot_config_module,
+            )
+    return outputs
 
 
 # --8<-- [end:create_details_ptm_visualization]
