@@ -361,8 +361,8 @@ def clusteredheatmap_plot(
     fig = b.get_figure()
     fig.update_layout(
         autosize=True,
-        width=800,
-        height=1000,
+        width=1000,
+        height=800,
     )
 
     return dict(plots=[b.get_figure()])
