@@ -57,9 +57,12 @@ def get_modification_table(
         mod_file,
         filter_based_on_modifications_group=False,
     )
+    # The dict is keyed by the position the plotter renders a site at, which carries the exon
+    # offsets of the plot and does not match the protein sequence. The label (e.g. "S8") holds the
+    # position in the sequence, which is also what the plots label their sites with.
     modifications_list = [
-        (location, mod[0][0], mod[1], mod[3], mod[0])
-        for location, sublist in modifications_by_position.items()
+        (int(mod[0][1:]), mod[0][0], mod[1], mod[3], mod[0])
+        for sublist in modifications_by_position.values()
         for mod in sublist
     ]
     modification_df = pd.DataFrame(

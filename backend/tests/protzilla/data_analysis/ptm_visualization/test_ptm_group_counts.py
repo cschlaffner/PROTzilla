@@ -98,7 +98,7 @@ class TestAddGroupCountsToModifications:
         # as produced by get_modification_table(..., include_label=True)
         return pd.DataFrame(
             [
-                (9, "S", "Phospho", "general", "S8"),
+                (8, "S", "Phospho", "general", "S8"),
                 (153, "R", "Citrullination", "general", "R153"),
                 (155, "K", "GG", "general", "K155"),
             ],
@@ -124,11 +124,11 @@ class TestAddGroupCountsToModifications:
         assert gg["CTR (n=1)"] == 0
 
     @staticmethod
-    def test_join_uses_the_label_so_it_survives_shifted_locations(
-        modification_df, mod_file
-    ):
-        # "S8" in the modification file is reported at Location 9 in the table; joining on the
-        # label rather than the position keeps the two in sync.
+    def test_join_uses_the_label_and_not_the_location(modification_df, mod_file):
+        # The location of the phospho row is deliberately not the position of its label, to show
+        # that the counts are joined via the label the modification file itself carries.
+        modification_df.loc[0, "Location"] = 9
+
         result = add_group_counts_to_modifications(
             modification_df, mod_file, groups=["AD", "CTR"], plotted_sites=set()
         )
@@ -150,7 +150,7 @@ class TestAddGroupCountsToModifications:
         )
 
         in_plot = dict(zip(result["Location"], result[IN_PLOT_COLUMN]))
-        assert in_plot[9]
+        assert in_plot[8]
         assert in_plot[153]
         assert not in_plot[155]
 

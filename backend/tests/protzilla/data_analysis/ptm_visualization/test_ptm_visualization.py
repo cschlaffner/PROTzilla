@@ -25,6 +25,7 @@ from tests.protzilla.data_analysis.ptm_visualization.ptm_vis_test_utils import (
     get_evidence_df,
     get_metadata_df,
     mock_settings_file,
+    read_fasta_sequences,
     run_plot_and_validate,
     alter_general_config,
 )
@@ -463,6 +464,35 @@ class TestPTMVisualization:
         run_plot_and_validate(
             plot_func, bar_detail_kwargs, gfap_config, {"2", "3", "4"}
         )
+
+    @staticmethod
+    def test_modification_locations_point_at_the_reported_amino_acid(
+        evidence_df, q_value_threshold, fasta_file_path, regions_file_path
+    ):
+        # The location of a modification is its position in the protein sequence, which is what the
+        # plots label their sites with. So the amino acid at that position of one of the sequences
+        # of the fasta file has to be the amino acid the table reports.
+        sequences = read_fasta_sequences(fasta_file_path)
+
+        modification_df = get_detected_modifications(
+            evidence_df,
+            q_value_threshold,
+            fasta_file_path,
+            regions_file_path,
+        )["modification_df"]
+
+        mismatches = [
+            (location, amino_acid)
+            for location, amino_acid in zip(
+                modification_df["Location"], modification_df["Amino Acid"]
+            )
+            if not any(
+                sequence[location - 1] == amino_acid
+                for sequence in sequences
+                if len(sequence) >= location
+            )
+        ]
+        assert not mismatches
 
     @staticmethod
     def test_detected_modifications(
