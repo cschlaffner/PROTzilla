@@ -17,6 +17,7 @@ PLOT_PRIMARY_COLOR = PLOT_COLOR_SEQUENCE[0]
 PLOT_SECONDARY_COLOR = PLOT_COLOR_SEQUENCE[1]
 """Second color in list."""
 
+
 def rgb_to_hex(rgb):
     # Convert RGB tuples back to hex color strings
     return f"#{''.join(f'{c:02x}' for c in rgb)}"
@@ -48,6 +49,14 @@ def interpolate_color(color_a, color_b, t):
 
     return rgb_to_hex(interpolated_rgb)
 
+
 ALL_PLOTLY_COLORSCALES = px.colors.named_colorscales()
-ALL_PLOTLY_COLORSCALES_WITH_REVERSED = ALL_PLOTLY_COLORSCALES + [i + "_r" for i in ALL_PLOTLY_COLORSCALES]
-ALL_PLOTLY_DIVERGING_COLORSCALES_WITH_REVERSED = list(filter(lambda x: not x.startswith("_") and not x.startswith("swatches"), dir(plotly.colors.diverging)))
+ALL_PLOTLY_COLORSCALES_WITH_REVERSED = ALL_PLOTLY_COLORSCALES + [
+    i + "_r" for i in ALL_PLOTLY_COLORSCALES
+]
+ALL_PLOTLY_DIVERGING_COLORSCALES_WITH_REVERSED = list(
+    filter(
+        lambda x: not x.startswith("_") and not x.startswith("swatches"),
+        dir(plotly.colors.diverging),
+    )
+)

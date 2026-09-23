@@ -225,6 +225,7 @@ def create_volcano_plot(
         ],
     )
 
+
 def clusteredheatmap_plot(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame | None = None,
@@ -264,15 +265,15 @@ def clusteredheatmap_plot(
     sample_groupings = {}
     for grouping in metadata_column_samplegroupings or []:
         mapping = metadata_df[["Sample", grouping]].to_dict(orient="tight")["data"]
-        sample_groupings[grouping] = {k:v for [k, v] in mapping}
+        sample_groupings[grouping] = {k: v for [k, v] in mapping}
 
     protein_groupings = {}
     for grouping in enrichment_terms or []:
         grouping_row = enrichment_df[enrichment_df["term"] == grouping]
         label = grouping_row["description"].iloc[0]
-        proteins = grouping_row["inputGenes"].iloc[0].split(',')
+        proteins = grouping_row["inputGenes"].iloc[0].split(",")
         protein_groupings[grouping] = {k: label for k in proteins}
-    
+
     c = ClusteredHeatMap(
         input_protein_df,
         distance=distance_method,
@@ -312,7 +313,7 @@ def clusteredheatmap_plot(
 
     match heatmap_color_boundary_mode:
         case HeatmapColorBoundaryMode.minmax:
-            heatmap_zmin = None # CHM library handles this as min/max
+            heatmap_zmin = None  # CHM library handles this as min/max
             heatmap_zmax = None
             ticktext_low = "Min: "
             ticktext_high = "Max: "
@@ -364,6 +365,7 @@ def clusteredheatmap_plot(
     )
 
     return dict(plots=[b.get_figure()])
+
 
 def clustergram_plot(
     protein_df: pd.DataFrame,

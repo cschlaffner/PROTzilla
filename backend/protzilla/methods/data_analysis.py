@@ -2,7 +2,10 @@ from abc import ABC
 from enum import StrEnum
 from typing_extensions import override
 
-from backend.protzilla.constants.colors import ALL_PLOTLY_COLORSCALES_WITH_REVERSED, ALL_PLOTLY_DIVERGING_COLORSCALES_WITH_REVERSED
+from backend.protzilla.constants.colors import (
+    ALL_PLOTLY_COLORSCALES_WITH_REVERSED,
+    ALL_PLOTLY_DIVERGING_COLORSCALES_WITH_REVERSED,
+)
 from backend.protzilla.constants.option_types import (
     HeatmapColorBoundaryMode,
     HeatmapColorMidMode,
@@ -928,7 +931,9 @@ class PlotScatterPlot(DataAnalysisPlotStep):
 
 class PlotClusteredHeatmap(DataAnalysisPlotStep):
     display_name: str = "Clustered Heatmap"
-    method_description: str = "Plots protein intensities in a clustered heatmap (also sometimes called clustergram or clustermap)"
+    method_description: str = (
+        "Plots protein intensities in a clustered heatmap (also sometimes called clustergram or clustermap)"
+    )
 
     plot_method = staticmethod(clusteredheatmap_plot)
 
@@ -995,7 +1000,9 @@ class PlotClusteredHeatmap(DataAnalysisPlotStep):
                 DropdownField(
                     name="heatmap_color_scale",
                     label="Heatmap colourscale",
-                    options=form_helper.to_choices(ALL_PLOTLY_DIVERGING_COLORSCALES_WITH_REVERSED),
+                    options=form_helper.to_choices(
+                        ALL_PLOTLY_DIVERGING_COLORSCALES_WITH_REVERSED
+                    ),
                     value="rdbu_r",
                 ),
                 DropdownField(
@@ -1028,7 +1035,7 @@ class PlotClusteredHeatmap(DataAnalysisPlotStep):
                 ColorField(
                     name="heatmap_nan_color",
                     label="Heatmap NaN colour",
-                    value="#616161"
+                    value="#616161",
                 ),
                 CheckboxField(
                     name="show_row_ticks",
@@ -1041,13 +1048,15 @@ class PlotClusteredHeatmap(DataAnalysisPlotStep):
                     label="Show column ticks",
                     text="Show column ticks",
                     value=False,
-                )
-            ]
+                ),
+            ],
         )
 
     @override
     def modify_form(self, run: Run) -> None:
-        metadata_column_field: MultiSelectField = self.form["metadata_column_samplegroupings"]
+        metadata_column_field: MultiSelectField = self.form[
+            "metadata_column_samplegroupings"
+        ]
         metadata_source, source_handle = self.input_source(
             run.steps, DataKey.METADATA_DF
         )
@@ -1066,29 +1075,50 @@ class PlotClusteredHeatmap(DataAnalysisPlotStep):
         if enrichment_df is not None:
             terms = enrichment_df["term"].to_list()
             description = enrichment_df["description"].to_list()
-            options = [Option(term, term + " " + desc) for term, desc in zip(terms, description)]
+            options = [
+                Option(term, term + " " + desc)
+                for term, desc in zip(terms, description)
+            ]
             enrichment_term_field.set_options(options)
 
         linkage_method_field: DropdownField = self.form["linkage_method"]
         distance_method_field: DropdownField = self.form["distance_method"]
-        supported_linkages = list(typing.get_args(clusteredheatmap.algos.linkage.LinkageFunName))
-        supported_distances = list(typing.get_args(clusteredheatmap.algos.distance.ScipySupportedDist)) + list(typing.get_args(clusteredheatmap.algos.distance.ChmSupportedDist)) + list(typing.get_args(clusteredheatmap.algos.distance.NandistSupportedDist))
+        supported_linkages = list(
+            typing.get_args(clusteredheatmap.algos.linkage.LinkageFunName)
+        )
+        supported_distances = (
+            list(typing.get_args(clusteredheatmap.algos.distance.ScipySupportedDist))
+            + list(typing.get_args(clusteredheatmap.algos.distance.ChmSupportedDist))
+            + list(
+                typing.get_args(clusteredheatmap.algos.distance.NandistSupportedDist)
+            )
+        )
         linkage_method_field.set_options(form_helper.to_choices(supported_linkages))
         distance_method_field.set_options(form_helper.to_choices(supported_distances))
 
-        custom_zbounds_used: bool = (self.form["heatmap_color_boundary_mode"].value == HeatmapColorBoundaryMode.custom)
+        custom_zbounds_used: bool = (
+            self.form["heatmap_color_boundary_mode"].value
+            == HeatmapColorBoundaryMode.custom
+        )
         self.form["heatmap_zmin"].isVisible = custom_zbounds_used
         self.form["heatmap_zmax"].isVisible = custom_zbounds_used
 
-        custom_zmid_used: bool = (self.form["heatmap_zmid_mode"].value == HeatmapColorMidMode.custom)
+        custom_zmid_used: bool = (
+            self.form["heatmap_zmid_mode"].value == HeatmapColorMidMode.custom
+        )
         self.form["heatmap_zmid"].isVisible = custom_zmid_used
 
         show_all_colorscales = self.form["show_continuous_colorscales"].value
         colorscale_field: DropdownField = self.form["heatmap_color_scale"]
         if show_all_colorscales:
-            colorscale_field.set_options(form_helper.to_choices(ALL_PLOTLY_COLORSCALES_WITH_REVERSED))
+            colorscale_field.set_options(
+                form_helper.to_choices(ALL_PLOTLY_COLORSCALES_WITH_REVERSED)
+            )
         else:
-            colorscale_field.set_options(form_helper.to_choices(ALL_PLOTLY_DIVERGING_COLORSCALES_WITH_REVERSED))
+            colorscale_field.set_options(
+                form_helper.to_choices(ALL_PLOTLY_DIVERGING_COLORSCALES_WITH_REVERSED)
+            )
+
 
 class PlotClustergram(DataAnalysisPlotStep):
     display_name = "Clustergram"

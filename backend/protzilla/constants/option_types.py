@@ -74,6 +74,7 @@ CORRECTED_P_VALUES_COLUMNS = [
 LOG2_FOLD_CHANGE_COLUMNS = ["Protein ID", "log2_fold_change"]  # not true for PTM data
 T_STATISTIC_COLUMNS = ["Protein ID", "t_statistic"]
 
+
 class HeatmapColorBoundaryMode(StrEnum):
     custom = "Custom"
     minmax = "Min / Max z-values"
@@ -81,9 +82,9 @@ class HeatmapColorBoundaryMode(StrEnum):
     q5 = "5% / 95% quantiles"
     q10 = "10% / 90% quantiles"
 
+
 class HeatmapColorMidMode(StrEnum):
     custom = "Custom"
     centered_to_bounds = "Centered between boundaries"
     mean = "Data mean"
     median = "Data median"
-
