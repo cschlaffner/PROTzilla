@@ -1061,7 +1061,6 @@ class PlotClusteredHeatmap(DataAnalysisPlotStep):
             run.steps, DataKey.METADATA_DF
         )
 
-        metadata_column_field.set_options([])
         if metadata_source is not None and source_handle is not None:
             metadata_column_field.set_options(
                 form_helper.get_choices_for_metadata(
@@ -1071,9 +1070,10 @@ class PlotClusteredHeatmap(DataAnalysisPlotStep):
                     output_key=source_handle,
                 )
             )
+        else:
+            metadata_column_field.set_options([])
 
         enrichment_term_field: MultiSelectField = self.form["enrichment_terms"]
-        enrichment_term_field.set_options([])
         enrichment_df = self.get_input(run.steps, DataKey.ENRICHMENT_DF)
 
         # Must be STRING compatible
@@ -1087,6 +1087,9 @@ class PlotClusteredHeatmap(DataAnalysisPlotStep):
                 for term, desc in zip(terms, description)
             ]
             enrichment_term_field.set_options(options)
+        else:
+            enrichment_term_field.set_options([])
+
 
         linkage_method_field: DropdownField = self.form["linkage_method"]
         distance_method_field: DropdownField = self.form["distance_method"]
