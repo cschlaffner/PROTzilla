@@ -274,20 +274,28 @@ def clusteredheatmap_plot(
         proteins = grouping_row["inputGenes"].iloc[0].split(",")
         protein_groupings[grouping] = {k: label for k in proteins}
 
-    c = ClusteredHeatMap(
-        input_protein_df,
-        distance=distance_method,
-        use_completecase_analysis=use_completecase_analysis,
-        linkage=linkage_method,
-        column_group_mappings=sample_groupings if flip_axes else protein_groupings,
-        row_group_mappings=protein_groupings if flip_axes else sample_groupings,
-        optimal_leaf_ordering=optimal_leaf_ordering,
-        cluster_rows=perform_row_clustering,
-        cluster_columns=perform_column_clustering,
-        data_column_title=column_title,
-        data_row_title=row_title,
-        data_z_title=z_title,
-    )
+    try:
+        c = ClusteredHeatMap(
+            input_protein_df,
+            distance=distance_method,
+            use_completecase_analysis=use_completecase_analysis,
+            linkage=linkage_method,
+            column_group_mappings=sample_groupings if flip_axes else protein_groupings,
+            row_group_mappings=protein_groupings if flip_axes else sample_groupings,
+            optimal_leaf_ordering=optimal_leaf_ordering,
+            cluster_rows=perform_row_clustering,
+            cluster_columns=perform_column_clustering,
+            data_column_title=column_title,
+            data_row_title=row_title,
+            data_z_title=z_title,
+        )
+    except ValueError as e:
+        if "finite values" in str(e):
+            raise ValueError(
+                "Error in distance calculation. If your data has missing values, use any of dixon_pds_*, nandist_*, eirola_esd_*, or mesquita_eed_* as your distance method. Alternatively, you can use complete case analysis."
+            )
+        else:
+            raise ValueError from e
 
     b = PlotlyVisuBuilder(
         c,
