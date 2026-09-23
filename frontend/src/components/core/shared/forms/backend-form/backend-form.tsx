@@ -68,6 +68,7 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
     async (values: Record<string, BackendInputValueType> = {}) => {
       const response = await callApiWithParameters("get_step_form/", {
         run_name: runName,
+        step_id: current_step_id,
         data: values,
       });
       if (response) {
@@ -75,7 +76,7 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
         setBackendFormData(data);
       }
     },
-    [runName],
+    [runName, current_step_id],
   );
 
   useEffect(() => {
@@ -147,10 +148,15 @@ export const BackendForm: React.FC<BackendFormProps> = memo(function Form({
   return (
     <>
       {BackendFormData && (
-        <StyledForm>
+        <StyledForm key={current_step_id}>
           <H3>{BackendFormData.label}</H3>
           {BackendFormData.input_fields.map((inputField) => (
-            <InputField key={inputField.name} onChange={handleChange} {...inputField} />
+            <InputField
+              key={`${current_step_id}_${inputField.name}`}
+              stepId={current_step_id}
+              onChange={handleChange}
+              {...inputField}
+            />
           ))}
           <StyledSubmitDiv>
             <SubmitButton
@@ -175,6 +181,7 @@ const InputField: React.FC<BackendInputFieldProps> = memo(function InputField({
   onChange,
   options,
   isVisible,
+  stepId,
   ...props
 }) {
   const handleInputChange = (value: BackendInputValueType) => {
@@ -184,6 +191,8 @@ const InputField: React.FC<BackendInputFieldProps> = memo(function InputField({
   if (isVisible === false) {
     return null;
   }
+
+  const uniqueId = `${stepId}_${name}`;
 
   switch (type) {
     case "text":
@@ -200,10 +209,15 @@ const InputField: React.FC<BackendInputFieldProps> = memo(function InputField({
       );
     case "checkbox-select":
       return (
-        <CheckboxSelectInputField onChange={handleInputChange} options={options ?? []} {...props} />
+        <CheckboxSelectInputField
+          id={uniqueId}
+          onChange={handleInputChange}
+          options={options ?? []}
+          {...props}
+        />
       );
     case "single-checkbox":
-      return <SingleCheckboxInputField onChange={handleInputChange} {...props} />;
+      return <SingleCheckboxInputField id={uniqueId} onChange={handleInputChange} {...props} />;
     case "dropdown":
       return <DropdownInputField onChange={handleInputChange} options={options ?? []} {...props} />;
     case "multi-select":

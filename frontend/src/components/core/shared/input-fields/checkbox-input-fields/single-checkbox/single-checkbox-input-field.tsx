@@ -1,5 +1,5 @@
 import { size } from "@protzilla/theme";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { SingleCheckboxInputFieldProps } from "./single-checkbox-input-field.props.ts";
@@ -18,11 +18,18 @@ export const SingleCheckboxInputField: React.FC<SingleCheckboxInputFieldProps> =
   value: initialValue,
   text,
   onChange,
+  id,
   ...props
 }) => {
   const [isChecked, setIsChecked] = useState<boolean>(() => {
     return initialValue ?? false;
   });
+
+  const checkboxId = id ?? "checkbox";
+
+  useEffect(() => {
+    setIsChecked(initialValue ?? false);
+  }, [initialValue]);
 
   const handleChange = (value: boolean) => {
     setIsChecked(value);
@@ -32,10 +39,10 @@ export const SingleCheckboxInputField: React.FC<SingleCheckboxInputFieldProps> =
   return (
     <InputContainer {...props}>
       <StyledSingleCheckboxContainer $isSmall={props.isSmall ?? false}>
-        <StyledLabel htmlFor={"checkbox"}>
+        <StyledLabel htmlFor={checkboxId}>
           <input
             type="checkbox"
-            id={"checkbox"}
+            id={checkboxId}
             checked={isChecked}
             onChange={(e) => {
               handleChange(e.target.checked);
