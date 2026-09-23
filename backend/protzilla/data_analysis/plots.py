@@ -251,6 +251,45 @@ def clusteredheatmap_plot(
     show_row_ticks: bool = False,
     show_column_ticks: bool = False,
 ) -> dict:
+    """
+    Plots a clustered heatmap using the clusteredheatmap library.
+    Integrates metadata and GO for group markers as well.
+
+    :param protein_df: Main dataframe to cluster
+    :param metadata_df: Metadata for sample annotation
+    :param enrichment_df: Output of GO analysis, metadata for protein annotation
+    :param flip_axes: Whether to flip axes of the plot (purely visual setting)
+    :param metadata_column_samplegroupings: list of columns from metadata_df to
+        use for sample annotation
+    :param enrichment_terms: list of terms from enrichment_df to use
+        for protein annotation
+    :param perform_row_clustering: If rows should be clustered and reordered
+    :param perform_column_clustering: If columns should be clustered and reordered
+    :param linkage_method: Linkage method to use on both axes.
+        Can be any of the scipy supported linkage methods.
+    :param distance_method: Distance method to use on both axes.
+        Can be any of the clusteredheatmap supported distance methods.
+    :param use_completecase_analysis: Whether or not to use complete case analysis
+        for the provided distance method (forwarded to clusteredheatmap)
+    :param optimal_leaf_ordering: Whether or not to use optimal leaf ordering
+        for the dendrograms of both axes
+    :param heatmap_color_scale: Name of the plotly colorscale to use
+        for the heatmap
+    :param heatmap_color_boundary_mode: Preset for the heatmap colorscale
+        min/max boundaries
+    :param heatmap_zmin: If manual bounds selected, the float z-value
+        mapping to the lowest color in the colorscale
+    :param heatmap_zmax: If manual bounds selected, the float z-value
+        mapping to the highest color in the colorscale
+    :param heatmap_zmid_mode: Preset for the heatmap colorscale
+        center/mid value
+    :param heatmap_zmid: If manual zmid selected, the float z-value
+        mapping to the centre value in the colorscale
+    :param heatmap_nan_color: Color to highlight missing values / NaNs
+        with in the heatmap
+    :param show_row_ticks: Whether or not to show ticks for all rows
+    :param show_column_ticks: Whether or not to show ticks for all columns
+    """
 
     input_protein_df = long_to_wide(protein_df)
     if flip_axes:
