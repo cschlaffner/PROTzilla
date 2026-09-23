@@ -96,6 +96,7 @@ _hidden_steps: list[Step] = [
     data_integration.DatabaseIntegrationByUniprot,
     data_integration.PlotGSEAEnrichmentPlot,
     data_analysis.PTMsProteinAndPerSample,
+    data_analysis.PlotClustergram,
 ]
 
 
