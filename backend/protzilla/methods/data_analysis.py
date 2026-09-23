@@ -1090,7 +1090,6 @@ class PlotClusteredHeatmap(DataAnalysisPlotStep):
         else:
             enrichment_term_field.set_options([])
 
-
         linkage_method_field: DropdownField = self.form["linkage_method"]
         distance_method_field: DropdownField = self.form["distance_method"]
         supported_linkages = list(
