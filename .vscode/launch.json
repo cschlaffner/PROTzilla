@@ -13,6 +13,11 @@
                 {
                     "localRoot": "${workspaceFolder}/backend",
                     "remoteRoot": "/home/prot/zilla/backend/"
+                                },
+                {
+                    "localRoot": "${workspaceFolder}/../ptm-visualization",
+                    "remoteRoot": "/home/prot/zilla/ptm-visualization/"
+
                 }
             ]
         }

@@ -18,8 +18,12 @@ services:
     build:
       context: .
       dockerfile: "backend/Dockerfile.dev"
+      additional_contexts:
+        # local checkout of the protein_sequencing package, installed editable
+        ptmvis: "../ptm-visualization"
     volumes:
       - "./backend:/home/prot/zilla/backend:Z" # :Z is required for SELinux and should be ignored everywhere else
+      - "../ptm-visualization:/home/prot/zilla/ptm-visualization:Z"
       - "./mcp-server:/home/prot/zilla/mcp-server:Z"
       - "./runner_cli.py:/home/prot/zilla/runner_cli.py:Z"
       - "./pytest.ini:/home/prot/zilla/pytest.ini:Z"
