@@ -1,10 +1,13 @@
 import logging
 
 from backend.protzilla.constants.option_types import (
+    HeatmapColorBoundaryMode,
+    HeatmapColorMidMode,
     PValueColumnName,
     SimpleImputerStrategyType,
 )
 from backend.protzilla.constants.data_types import ClassificationType
+from backend.protzilla.utilities.utilities import default_intensity_column
 import dash_bio as dashbio
 import numpy as np
 import pandas as pd
@@ -13,7 +16,6 @@ import plotly.graph_objects as go
 from scipy import stats
 from sklearn.metrics import precision_recall_curve, auc, roc_curve
 from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances
-
 from backend.protzilla.constants.colors import (
     PLOT_COLOR_SEQUENCE,
     PLOT_PRIMARY_COLOR,
@@ -24,6 +26,9 @@ from backend.protzilla.utilities.clustergram import (
     AXIS_PROTEIN,
 )
 from backend.protzilla.utilities.transform_dfs import is_long_format, long_to_wide
+
+from clusteredheatmap.chm import ClusteredHeatMap
+from clusteredheatmap.visu.plotly.builder import PlotlyVisuBuilder
 
 colors = {
     "plot_bgcolor": "white",
@@ -219,6 +224,194 @@ def create_volcano_plot(
             )
         ],
     )
+
+
+def clusteredheatmap_plot(
+    protein_df: pd.DataFrame,
+    metadata_df: pd.DataFrame | None = None,
+    enrichment_df: pd.DataFrame | None = None,
+    flip_axes: bool = False,
+    metadata_column_samplegroupings: list[str] | None = None,
+    enrichment_terms: list[str] | None = None,
+    # Algo params
+    perform_row_clustering: bool = True,
+    perform_column_clustering: bool = True,
+    linkage_method: str = "complete",
+    distance_method: str = "euclidean",
+    use_completecase_analysis: bool = False,
+    optimal_leaf_ordering: bool = True,
+    # Visu params
+    heatmap_color_scale: str = "RdBu_r",
+    heatmap_color_boundary_mode: HeatmapColorBoundaryMode = HeatmapColorBoundaryMode.custom,
+    heatmap_zmin: float | None = None,
+    heatmap_zmax: float | None = None,
+    heatmap_zmid_mode: HeatmapColorMidMode = HeatmapColorMidMode.median,
+    heatmap_zmid: float | str | None = 0.0,
+    heatmap_nan_color: str = "#808080",
+    show_row_ticks: bool = False,
+    show_column_ticks: bool = False,
+) -> dict:
+    """
+    Plots a clustered heatmap using the clusteredheatmap library.
+    Integrates metadata and GO for group markers as well.
+
+    :param protein_df: Main dataframe to cluster
+    :param metadata_df: Metadata for sample annotation
+    :param enrichment_df: Output of GO analysis, metadata for protein annotation
+    :param flip_axes: Whether to flip axes of the plot (purely visual setting)
+    :param metadata_column_samplegroupings: list of columns from metadata_df to
+        use for sample annotation
+    :param enrichment_terms: list of terms from enrichment_df to use
+        for protein annotation
+    :param perform_row_clustering: If rows should be clustered and reordered
+    :param perform_column_clustering: If columns should be clustered and reordered
+    :param linkage_method: Linkage method to use on both axes.
+        Can be any of the scipy supported linkage methods.
+    :param distance_method: Distance method to use on both axes.
+        Can be any of the clusteredheatmap supported distance methods.
+    :param use_completecase_analysis: Whether or not to use complete case analysis
+        for the provided distance method (forwarded to clusteredheatmap)
+    :param optimal_leaf_ordering: Whether or not to use optimal leaf ordering
+        for the dendrograms of both axes
+    :param heatmap_color_scale: Name of the plotly colorscale to use
+        for the heatmap
+    :param heatmap_color_boundary_mode: Preset for the heatmap colorscale
+        min/max boundaries
+    :param heatmap_zmin: If manual bounds selected, the float z-value
+        mapping to the lowest color in the colorscale
+    :param heatmap_zmax: If manual bounds selected, the float z-value
+        mapping to the highest color in the colorscale
+    :param heatmap_zmid_mode: Preset for the heatmap colorscale
+        center/mid value
+    :param heatmap_zmid: If manual zmid selected, the float z-value
+        mapping to the centre value in the colorscale
+    :param heatmap_nan_color: Color to highlight missing values / NaNs
+        with in the heatmap
+    :param show_row_ticks: Whether or not to show ticks for all rows
+    :param show_column_ticks: Whether or not to show ticks for all columns
+    """
+
+    input_protein_df = long_to_wide(protein_df)
+    if flip_axes:
+        input_protein_df = input_protein_df.T
+
+    row_title = input_protein_df.index.name
+    column_title = input_protein_df.columns.name
+    z_title = default_intensity_column(protein_df)
+
+    data_matrix = input_protein_df.to_numpy()
+
+    sample_groupings = {}
+    for grouping in metadata_column_samplegroupings or []:
+        mapping = metadata_df[["Sample", grouping]].to_dict(orient="tight")["data"]
+        sample_groupings[grouping] = {k: v for [k, v] in mapping}
+
+    protein_groupings = {}
+    for grouping in enrichment_terms or []:
+        grouping_row = enrichment_df[enrichment_df["term"] == grouping]
+        label = grouping_row["description"].iloc[0]
+        proteins = grouping_row["inputGenes"].iloc[0].split(",")
+        protein_groupings[grouping] = {k: label for k in proteins}
+
+    try:
+        c = ClusteredHeatMap(
+            input_protein_df,
+            distance=distance_method,
+            use_completecase_analysis=use_completecase_analysis,
+            linkage=linkage_method,
+            column_group_mappings=sample_groupings if flip_axes else protein_groupings,
+            row_group_mappings=protein_groupings if flip_axes else sample_groupings,
+            optimal_leaf_ordering=optimal_leaf_ordering,
+            cluster_rows=perform_row_clustering,
+            cluster_columns=perform_column_clustering,
+            data_column_title=column_title,
+            data_row_title=row_title,
+            data_z_title=z_title,
+        )
+    except ValueError as e:
+        if "finite values" in str(e):
+            raise ValueError(
+                "Error in distance calculation. If your data has missing values, use any of dixon_pds_*, nandist_*, eirola_esd_*, or mesquita_eed_* as your distance method. Alternatively, you can use complete case analysis."
+            )
+        else:
+            raise ValueError from e
+
+    b = PlotlyVisuBuilder(
+        c,
+        vertical_layout="dgh",
+        horizontal_layout="dgh",
+    )
+
+    ticktext_low = ""
+    ticktext_mid = ""
+    ticktext_high = ""
+
+    match heatmap_zmid_mode:
+        case HeatmapColorMidMode.median:
+            heatmap_zmid = "median"
+            ticktext_mid = "Median: "
+        case HeatmapColorMidMode.centered_to_bounds:
+            heatmap_zmid = None
+        case HeatmapColorMidMode.mean:
+            ticktext_mid = "Mean: "
+            heatmap_zmid = "mean"
+        case HeatmapColorMidMode.custom:
+            pass
+
+    match heatmap_color_boundary_mode:
+        case HeatmapColorBoundaryMode.minmax:
+            heatmap_zmin = None  # CHM library handles this as min/max
+            heatmap_zmax = None
+            ticktext_low = "Min: "
+            ticktext_high = "Max: "
+        case HeatmapColorBoundaryMode.q1:
+            heatmap_zmin = float(np.nanquantile(data_matrix, 0.01))
+            heatmap_zmax = float(np.nanquantile(data_matrix, 0.99))
+            ticktext_low = "1% quantile: "
+            ticktext_high = "99% quantile: "
+        case HeatmapColorBoundaryMode.q5:
+            heatmap_zmin = float(np.nanquantile(data_matrix, 0.05))
+            heatmap_zmax = float(np.nanquantile(data_matrix, 0.95))
+            ticktext_low = "5% quantile: "
+            ticktext_high = "95% quantile: "
+        case HeatmapColorBoundaryMode.q10:
+            heatmap_zmin = float(np.nanquantile(data_matrix, 0.10))
+            heatmap_zmax = float(np.nanquantile(data_matrix, 0.90))
+            ticktext_low = "10% quantile: "
+            ticktext_high = "90% quantile: "
+        case HeatmapColorBoundaryMode.custom:
+            pass
+
+    b.add_heatmap(
+        _zmin=heatmap_zmin,
+        _zmax=heatmap_zmax,
+        _zmid=heatmap_zmid,
+        nan_color=heatmap_nan_color,
+        colorscale=heatmap_color_scale,
+        ticktext_prefix=(ticktext_low, ticktext_mid, ticktext_high),
+    )
+
+    if perform_column_clustering:
+        b.add_col_dendrogram()
+    if perform_row_clustering:
+        b.add_row_dendrogram()
+
+    b.add_col_group_markers()
+    b.add_row_group_markers()
+
+    if show_row_ticks:
+        b.add_row_ticks(anchor_subplot="h", side="right")
+    if show_column_ticks:
+        b.add_col_ticks(anchor_subplot="h", side="bottom")
+
+    fig = b.get_figure()
+    fig.update_layout(
+        autosize=True,
+        width=1000,
+        height=800,
+    )
+
+    return dict(plots=[b.get_figure()])
 
 
 def clustergram_plot(
