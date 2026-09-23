@@ -1072,7 +1072,7 @@ class PlotClusteredHeatmap(DataAnalysisPlotStep):
         linkage_method_field: DropdownField = self.form["linkage_method"]
         distance_method_field: DropdownField = self.form["distance_method"]
         supported_linkages = list(typing.get_args(clusteredheatmap.algos.linkage.LinkageFunName))
-        supported_distances = list(typing.get_args(clusteredheatmap.algos.distance.ScipySupportedDist)) + list(typing.get_args(clusteredheatmap.algos.distance.ChmSupportedDist))
+        supported_distances = list(typing.get_args(clusteredheatmap.algos.distance.ScipySupportedDist)) + list(typing.get_args(clusteredheatmap.algos.distance.ChmSupportedDist)) + list(typing.get_args(clusteredheatmap.algos.distance.NandistSupportedDist))
         linkage_method_field.set_options(form_helper.to_choices(supported_linkages))
         distance_method_field.set_options(form_helper.to_choices(supported_distances))
 

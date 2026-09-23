@@ -227,15 +227,15 @@ def create_volcano_plot(
 
 def clusteredheatmap_plot(
     protein_df: pd.DataFrame,
-    metadata_df: pd.DataFrame | None,
-    enrichment_df: pd.DataFrame | None,
+    metadata_df: pd.DataFrame | None = None,
+    enrichment_df: pd.DataFrame | None = None,
     flip_axes: bool = False,
     metadata_column_samplegroupings: list[str] | None = None,
     enrichment_terms: list[str] | None = None,
     # Algo params
     perform_row_clustering: bool = True,
     perform_column_clustering: bool = True,
-    linkage_method: str = "single",
+    linkage_method: str = "complete",
     distance_method: str = "euclidean",
     use_completecase_analysis: bool = False,
     optimal_leaf_ordering: bool = True,
@@ -250,8 +250,6 @@ def clusteredheatmap_plot(
     show_row_ticks: bool = False,
     show_column_ticks: bool = False,
 ) -> dict:
-    # TODO LIST:
-    # - Fix Tooltip for Nans showing %{z}
 
     input_protein_df = long_to_wide(protein_df)
     if flip_axes:
