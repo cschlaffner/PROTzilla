@@ -113,10 +113,8 @@ def create_box_plots(
     :return: returns a boxplot of the data
     """
     if group_by not in {"None", "Sample", "Protein ID"}:
-        raise ValueError(
-            f"""Group_by parameter  must be "None" or
-                "Sample" or "Protein ID" but is {group_by}"""
-        )
+        raise ValueError(f"""Group_by parameter  must be "None" or
+                "Sample" or "Protein ID" but is {group_by}""")
     intensity_name_a = default_intensity_column(dataframe_a)
     intensity_name_b = default_intensity_column(dataframe_b)
     outlier_parameter = "outliers" if show_outliers else False
@@ -198,10 +196,8 @@ def create_histograms(
     :return: returns a pie or bar chart of the data
     """
     if visual_transformation not in {"linear", "log10"}:
-        raise ValueError(
-            f"""visual_transformation parameter  must be "linear" or
-                "log10" but is {visual_transformation}"""
-        )
+        raise ValueError(f"""visual_transformation parameter  must be "linear" or
+                "log10" but is {visual_transformation}""")
 
     intensity_name_a = default_intensity_column(dataframe_a)
     intensity_name_b = default_intensity_column(dataframe_b)

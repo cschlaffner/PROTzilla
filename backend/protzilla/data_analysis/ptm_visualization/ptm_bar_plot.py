@@ -12,6 +12,7 @@ from backend.protzilla.data_analysis.ptm_visualization.ptm_vis_utils import (
     get_group_dict_from_df,
     get_modification_groups_from_settings,
     get_plotted_sites_from_positions,
+    mark_as_fixed_layout,
     preprocess_files,
     preserve_modification_file,
 )
@@ -111,7 +112,7 @@ def create_bar_ptm_visualization(
     ) as modification_file:
         fig, messages = bar_plotter.create_bar_plot()
 
-        outputs = dict(plots=[fig], messages=messages)
+        outputs = dict(plots=[mark_as_fixed_layout(fig)], messages=messages)
         if output_modification_df is not None:
             outputs["modification_df"] = _get_modification_table_with_group_counts(
                 config_module=config_module,

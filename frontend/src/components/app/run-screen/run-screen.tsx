@@ -84,6 +84,7 @@ export const RunScreen: React.FC = () => {
   const [runData, setRunData] = useState(emptyRunData);
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
+  const [selectedPlotIndex, setSelectedPlotIndex] = useState(0);
   const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
 
   // Static PNGs sent as base64
@@ -213,8 +214,9 @@ export const RunScreen: React.FC = () => {
     };
   }, [runName, onFormSubmit]);
 
-  const handleDownloadPlot = (plot: Figure) => {
+  const handleDownloadPlot = (plot: Figure, index: number) => {
     setSelectedPlot(plot);
+    setSelectedPlotIndex(index);
     openDownloadModal();
   };
 
@@ -266,7 +268,7 @@ export const RunScreen: React.FC = () => {
                 text="Download plot"
                 style={{ width: "auto", alignSelf: "flex-start" }}
                 onClick={() => {
-                  handleDownloadPlot(plot);
+                  handleDownloadPlot(plot, index);
                 }}
               />
             </StyledContentDiv>
@@ -276,6 +278,8 @@ export const RunScreen: React.FC = () => {
             onClose={closeDownloadModal}
             data={selectedPlot.data}
             layout={selectedPlot.layout}
+            runName={runName}
+            plotIndex={selectedPlotIndex}
           />
         </>
       ) : (

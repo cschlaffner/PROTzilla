@@ -18,9 +18,20 @@ from backend.protzilla.data_analysis.ptm_visualization.ptm_vis_utils import (
     add_group_counts_to_modifications,
     get_group_dict_from_df,
     get_plotted_sites_from_columns,
+    mark_as_fixed_layout,
     preprocess_files,
     preserve_modification_file,
 )
+
+
+def _has_cleavages(cleavage_file: Path) -> bool:
+    """Whether the preprocessor found any cleavage at all.
+
+    Ensures ideal usage of the plot space by not keeping empty whitespace in one half of the plot.
+    """
+    with open(cleavage_file, "r") as f:
+        header = f.readline().strip().split(",")
+    return len([column for column in header if column not in ("ID", "Group")]) > 0
 
 
 def get_details_plot_config_module(
@@ -71,7 +82,11 @@ def get_details_plot_config_module(
             # Details plot settings
             "MODIFICATION_THRESHOLD": 1,
             "INPUT_FILES": {
-                "B": ("Cleavage", cleavage_file),
+                **(
+                    {"B": ("Cleavage", cleavage_file)}
+                    if _has_cleavages(cleavage_file)
+                    else {}
+                ),
                 "A": ("PTM", modification_file),
             },
             "CLEAVAGES_TO_HIGHLIGHT": [],
@@ -161,7 +176,7 @@ def create_details_ptm_visualization(
     with preserve_modification_file(ptm_input_file) as modification_file:
         fig, messages = plotter.create_details_plot()
 
-        outputs = dict(plots=[fig], messages=messages)
+        outputs = dict(plots=[mark_as_fixed_layout(fig)], messages=messages)
         if output_modification_df is not None:
             outputs["modification_df"] = _get_modification_table_with_group_counts(
                 config_module=config_module,

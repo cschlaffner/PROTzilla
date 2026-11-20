@@ -402,6 +402,7 @@ class StepManager:
         except ValueError:  # No previous step
             must_goto_fallback = True
 
+        self.all_steps[step_id].on_remove(self)
         self.graph.remove_node(step_id)
         del self.all_steps[step_id]
 

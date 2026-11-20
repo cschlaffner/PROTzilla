@@ -4,10 +4,12 @@ import tempfile
 import types
 from collections import OrderedDict
 from contextlib import contextmanager
+from contextvars import ContextVar
 from pathlib import Path
 from typing import Iterable, Iterator
 
 import pandas as pd
+import plotly.graph_objects as go
 from protein_sequencing.data_preprocessing.max_quant_preprocessor import (
     MaxQuantPreprocessor,
 )
@@ -42,9 +44,58 @@ def load_regions_from_csv(regions_file_path: Path) -> list:
     return regions
 
 
+# The layout of the PTM plots is calculated based on rendered pixels of the canvas (protein_sequencing sets
+# xaxis.range == [0, FIGURE_WIDTH] with zero margins, and reserves label slots via FONT_SIZE).
+# Plotly's layout.width/height are CSS pixels, i.e. 96 dpi, so the canvas has to be sized in that same unit or geometry
+# and text drift apart. The 300 dpi export resolution is applied uniformly at download time through Plotly's `scale`
+# argument instead.
+SCREEN_DPI = 96
+POINTS_PER_INCH = 72
+
+
 def convert_settings_mm_size_to_px(size):
-    # Convert width/height in mm to px using 300 dpi
-    return (size / 25.4) * 300
+    # Convert width/height in mm to CSS px (96 dpi), the unit Plotly lays out in
+    return (size / 25.4) * SCREEN_DPI
+
+
+def convert_settings_pt_size_to_px(size):
+    # Convert a font size in pt to CSS px (96 dpi)
+    return round(size * SCREEN_DPI / POINTS_PER_INCH)
+
+
+def mark_as_fixed_layout(fig: go.Figure) -> go.Figure:
+    """Tag a figure whose geometry only holds at its own canvas size.
+
+    The PTM plots calculate shape and annotation positions, as well as their sizes, based on the rendered pixels of
+    ``layout.width``/``layout.height``. Rescaling such a figure in the browser moves the geometry but not the text,
+    which makes labels overlap, so the plot download has to leave width, height and margins untouched.
+    The flag is how the frontend recognises those figures.
+    """
+    meta = fig.layout.meta if isinstance(fig.layout.meta, dict) else {}
+    fig.update_layout(meta={**meta, "fixed_layout": True})
+    return fig
+
+
+# Plot settings that take precedence over the saved plot settings template while a PTM plot is rendered, see
+# override_plot_settings.
+_plot_settings_override: ContextVar[dict | None] = ContextVar(
+    "ptm_plot_settings_override", default=None
+)
+
+
+@contextmanager
+def override_plot_settings(plot_settings: dict) -> Iterator[None]:
+    """Render PTM plots with the given plot settings instead of the saved template.
+
+    The PTM plots' size and text size are fixed when they are created (see mark_as_fixed_layout), so a different export
+    size can only be achieved by rendering the figure again. Otherwise, this may cause text to overlap onto figure
+    elements. Only the keys that are passed are overridden (e.g. width, height, text_size, font, custom_font).
+    """
+    token = _plot_settings_override.set(dict(plot_settings))
+    try:
+        yield
+    finally:
+        _plot_settings_override.reset(token)
 
 
 def get_modifications_dict(full_modifications_dict) -> dict:
@@ -60,10 +111,13 @@ def get_general_config_module(
 ) -> types.ModuleType:
     regions = load_regions_from_csv(regions_file_path)
 
-    protzilla_plot_settings = load_settings_from_file(
-        file_stem=CUSTOM_PLOT_SETTINGS_FILE_STEM,
-        default_file_stem=DEFAULT_PLOT_SETTINGS_FILE_STEM,
-    )
+    protzilla_plot_settings = {
+        **load_settings_from_file(
+            file_stem=CUSTOM_PLOT_SETTINGS_FILE_STEM,
+            default_file_stem=DEFAULT_PLOT_SETTINGS_FILE_STEM,
+        ),
+        **(_plot_settings_override.get() or {}),
+    }
     protzilla_ptm_settings = load_settings_from_file(
         file_stem=CUSTOM_PTM_SETTINGS_FILE_STEM,
         default_file_stem=DEFAULT_PTM_SETTINGS_FILE_STEM,
@@ -102,7 +156,9 @@ def get_general_config_module(
             "FIGURE_HEIGHT": convert_settings_mm_size_to_px(
                 protzilla_plot_settings["height"]
             ),
-            "FONT_SIZE": protzilla_plot_settings["text_size"],
+            "FONT_SIZE": convert_settings_pt_size_to_px(
+                protzilla_plot_settings["text_size"]
+            ),
             # Default Parameters
             "FONT": (
                 protzilla_plot_settings["custom_font"]
@@ -110,8 +166,12 @@ def get_general_config_module(
                 else protzilla_plot_settings["font"]
             ),
             # Sequence Plot
-            "SEQUENCE_PLOT_FONT_SIZE": protzilla_plot_settings["text_size"],
-            "SEQUENCE_PLOT_HEIGHT": 50,
+            "SEQUENCE_PLOT_FONT_SIZE": convert_settings_pt_size_to_px(
+                protzilla_plot_settings["text_size"]
+            ),
+            # Tied to the font so that the region names always fit into the sequence box and overflows are avoided
+            "SEQUENCE_PLOT_HEIGHT": 2
+            * convert_settings_pt_size_to_px(protzilla_plot_settings["text_size"]),
             "EXONS_GAP": 10,
             "MIN_EXON_LENGTH": 5,
             "SEQUENCE_REGION_COLORS": protzilla_ptm_settings["color_settings"][

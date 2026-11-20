@@ -387,9 +387,7 @@ def test_imputation_normal_distribution_sampling(show_figures, input_imputation_
 
 def test_number_of_imputed_values(input_imputation_df, assertion_df_knn):
     count = number_of_imputed_values(input_imputation_df, assertion_df_knn)
-    assert (
-        count == 3
-    ), f"Wrong number of imputed samples\
+    assert count == 3, f"Wrong number of imputed samples\
                3 but is {count}"
 
 

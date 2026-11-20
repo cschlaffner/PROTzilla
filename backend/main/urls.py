@@ -62,6 +62,7 @@ urlpatterns = [
         name="set_step_input_file",
     ),
     path("api/get_step_plots/", views.get_step_plots, name="get_step_plots"),
+    path("api/rerender_plot/", views.rerender_plot, name="rerender_plot"),
     path(
         "api/get_current_step_output_labels/",
         views.get_current_step_output_labels,

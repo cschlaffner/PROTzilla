@@ -977,6 +977,59 @@ def get_step_plots(request):
         )
 
 
+# Plot settings a plot may be re-rendered with for export, see rerender_plot.
+RERENDER_PLOT_SETTING_KEYS = ("width", "height", "text_size", "font", "custom_font")
+
+
+def rerender_plot(request: HttpRequest):
+    """
+    Renders the plots of the current step again with the given plot settings (without storing them in the run) and
+    returns them as JSON.
+
+    Needed for plots that lead to fixed layout, i.e. that calculate their geometry based on absolute pixels values,
+    e.g., the PTM visualization plots (layout.meta.fixed_layout). They can only be resized for exporting by recreating
+    the plot from scratch.
+    """
+    if request.method != "POST":
+        return JsonResponse(
+            {"success": False, "message": "Invalid request method"}, status=405
+        )
+
+    data = json.loads(request.body)
+    run = Run(data.get("run_name"))
+    step = run.current_step
+    if step is None or not hasattr(step, "render_plots_with_settings"):
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "The plots of this step cannot be re-rendered for export.",
+            },
+            status=400,
+        )
+
+    plot_settings = {
+        key: value
+        for key, value in (data.get("plot_settings") or {}).items()
+        if key in RERENDER_PLOT_SETTING_KEYS and value not in (None, "")
+    }
+    try:
+        plots = step.render_plots_with_settings(run.steps, plot_settings)
+    except Exception as e:
+        logging.exception("Re-rendering plot for export failed")
+        return JsonResponse(
+            {
+                "success": False,
+                "message": f"Could not render the plot at this size: {e}",
+                "trace": format_trace(traceback.format_exception(e)),
+            },
+            status=400,
+        )
+
+    return JsonResponse(
+        {"success": True, "data": [to_json(plot) for plot in plots]}, safe=False
+    )
+
+
 def get_png_from_step(request: HttpRequest):
     """
     API call. Returns a base64-encoded PNG of a step output to the front-end

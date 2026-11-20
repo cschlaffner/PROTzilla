@@ -189,6 +189,13 @@ class Step(ABC):
     def calc_method(self):
         raise NotImplementedError("This method must be implemented in a subclass.")
 
+    def on_remove(self, steps: StepManager) -> None:
+        """
+        Called right before the step is removed from the run. Subclasses that store files of their
+        own in the run folder can override this to delete them.
+        :param steps: The StepManager object that contains all steps
+        """
+
     def calculate(self, steps: StepManager) -> bool:
         """
         Core calculation method for all steps, receives the inputs from the front-end and calculates the output.

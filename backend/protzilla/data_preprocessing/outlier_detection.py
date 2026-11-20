@@ -153,10 +153,8 @@ def by_pca(
         )
     transformed_df = long_to_wide(protein_df)
     if transformed_df.isnull().sum().any():
-        raise ValueError(
-            "Outlier Detection by PCA does not accept missing values \
-            encoded as NaN. Consider preprocessing your data to remove NaN values."
-        )
+        raise ValueError("Outlier Detection by PCA does not accept missing values \
+            encoded as NaN. Consider preprocessing your data to remove NaN values.")
     pca_model = PCA(n_components=number_of_components)
     pca_model.fit(transformed_df)
     df_transformed_pca_data = pd.DataFrame(

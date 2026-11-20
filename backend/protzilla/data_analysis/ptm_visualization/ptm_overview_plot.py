@@ -8,6 +8,7 @@ from backend.protzilla.data_analysis.ptm_visualization.ptm_vis_utils import (
     MODIFICATION_TABLE_COLUMNS,
     PTM_LABEL_COLUMN,
     get_modification_groups_from_settings,
+    mark_as_fixed_layout,
     preprocess_files,
 )
 
@@ -119,7 +120,7 @@ def create_overview_ptm_visualization(
     )
     fig, messages = overview_plotter.create_overview_plot()
 
-    return dict(plots=[fig], messages=messages)
+    return dict(plots=[mark_as_fixed_layout(fig)], messages=messages)
 
 
 # --8<-- [end:create_overview_ptm_visualization]

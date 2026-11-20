@@ -159,7 +159,7 @@ def linear_model(
             messages=messages,
         )
 
-    (corrected_p_values, corrected_alpha) = apply_multiple_testing_correction(
+    corrected_p_values, corrected_alpha = apply_multiple_testing_correction(
         p_values=p_values,
         method=multiple_testing_correction_method,
         alpha=alpha,
