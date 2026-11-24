@@ -39,6 +39,10 @@ A command line based runner for PROTzilla workflows is available via `runner_cli
 
 A guide on how to use the Runner is available in our [wiki](https://github.com/cschlaffner/PROTzilla/wiki/User-Guide#protzilla-as-a-command-line-tool).
 
+## :bulb: How to use enable the usage of AI models in PROTzilla
+
+A dedicated guide on the usage of AI models can be found [here](./docs/ai-guide.md).
+
 ## :mag: Further information: Development
 The PROTzilla backend is built with Python/Django and Node.js (managed via pnpm) is used for the frontend. <br>
 To open PROTzilla in development mode, see [the docker steps](#development)
