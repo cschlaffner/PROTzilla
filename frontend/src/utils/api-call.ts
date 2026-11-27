@@ -1,4 +1,5 @@
 import { InputValueType } from "@protzilla/core";
+import type { AxiosInstance } from "axios";
 
 import { API_ROOT } from "../constants";
 
@@ -10,6 +11,20 @@ export async function ensureCSRFToken() {
   if (!response.ok) throw new Error("Failed to fetch CSRF token");
   const data = await response.json();
   return data.csrfToken;
+}
+
+const CSRF_SAFE_METHODS = new Set(["get", "head", "options", "trace"]);
+
+/** Adds Django's CSRF token header to every state-changing request of an axios instance. */
+export function attachCSRFToken(instance: AxiosInstance): AxiosInstance {
+  instance.defaults.withCredentials = true;
+  instance.interceptors.request.use(async (config) => {
+    if (!CSRF_SAFE_METHODS.has((config.method ?? "get").toLowerCase())) {
+      config.headers.set("X-CSRFToken", await ensureCSRFToken());
+    }
+    return config;
+  });
+  return instance;
 }
 
 export const callApiWithParameters = async (

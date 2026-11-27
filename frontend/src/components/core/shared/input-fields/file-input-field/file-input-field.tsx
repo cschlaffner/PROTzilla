@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { styled } from "styled-components";
 
 import { FileInputFieldProps } from "./file-input-field.props";
+import { ensureCSRFToken } from "../../../../../utils/api-call";
 import { SecondaryButton } from "../../button";
 import { InputContainer } from "../input-container";
 
@@ -69,9 +70,12 @@ export const FileInputField: React.FC<FileInputFieldProps> = ({
     setIsUploading(true);
 
     try {
+      const csrfToken = await ensureCSRFToken();
       await axios.post("/api/upload_file/", formData, {
+        withCredentials: true,
         headers: {
           "Content-Type": "multipart/form-data",
+          "X-CSRFToken": csrfToken,
         },
         onUploadProgress: (progressEvent) => {
           const percent = Math.round((progressEvent.loaded * 100) / (progressEvent.total ?? 1));
