@@ -15,7 +15,9 @@ if TYPE_CHECKING:
     pass
 
 
-FormInputType = str | int | float | bool | None | list[str] | PurePath | Enum
+FormInputType = (
+    str | int | float | bool | None | list[str] | list[dict[str, str]] | PurePath | Enum
+)
 
 # Backwards compatibility for older imports that expect `inputs` from this module.
 inputs = FormInputType
@@ -54,6 +56,8 @@ class _baseField:
 class TextField(_baseField):
     type: str = "text"
     value: str = ""
+    rows: int = 1
+    isCodeEditor: bool = False
 
 
 @dataclass
@@ -129,6 +133,13 @@ class MultiSelectField(_baseField):
 
 
 @dataclass
+class NamedHandlesField(_baseField):
+    type: str = "named-handles"
+    options: list[Option] = field(default_factory=list)
+    value: list[dict[str, str]] = field(default_factory=list)
+
+
+@dataclass
 class DropdownField(_baseField):
     type: str = "dropdown"
     options: list[Option] | Enum = field(default_factory=list)
@@ -201,6 +212,7 @@ InputField = (
     | RadioSelectField
     | CheckboxField
     | MultiSelectField
+    | NamedHandlesField
     | DropdownField
     | FileInput
     | ColorField

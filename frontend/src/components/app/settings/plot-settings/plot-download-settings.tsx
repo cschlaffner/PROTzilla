@@ -1,6 +1,7 @@
 import { color, spacing, zIndex } from "@protzilla/theme";
+import { callApiWithParameters } from "@protzilla/utils";
 import { Data, Figure, Layout, Plots } from "plotly.js-dist-min";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Col, Row } from "react-grid-system";
 import { styled } from "styled-components";
 
@@ -14,7 +15,7 @@ import {
   TitleSizeField,
   WidthField,
 } from "./plot-settings-input-fields";
-import { PlotSettings, usePlotSettings } from "./usePlotSettings";
+import { hasFixedLayout, PlotSettings, usePlotSettings } from "./usePlotSettings";
 import {
   Button,
   Modal,
@@ -59,14 +60,22 @@ export interface PlotDownloadSettingsProps {
   onClose: () => void;
   data: Data[];
   layout: Partial<Layout>;
+  // Needed to re-render fixed-layout plots (see hasFixedLayout) at the chosen size
   runName?: string;
+  // Position of the plot among the plots of the current step
+  plotIndex?: number;
 }
+
+// Wait for the user to stop typing before a fixed-layout plot is rendered again
+const RERENDER_DEBOUNCE_MS = 400;
 
 export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   isOpen,
   onClose,
   data,
   layout,
+  runName,
+  plotIndex = 0,
 }) => {
   const {
     isLoading,
@@ -87,6 +96,14 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
   // For keeping the original title of the plot
   const [prevTitle, setPrevTitle] = useState(() => getTitleFromLayout(layout));
 
+  // A fixed-layout figure cannot be stretched in the browser, so width, height, font and text
+  // size are applied by rendering it again in the backend (without touching the stored run).
+  const isFixed = hasFixedLayout(layout);
+  const canRerender = isFixed && runName !== undefined;
+  const [isRendering, setIsRendering] = useState(false);
+  const [renderError, setRenderError] = useState<string | undefined>();
+  const latestRenderRequest = useRef(0);
+
   useEffect(() => {
     setPlot({ data, layout });
     setPrevTitle(getTitleFromLayout(layout));
@@ -103,30 +120,38 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
       titleSize: displaySizes.titleSize,
       textSize: displaySizes.textSize,
     });
+    // A fixed-layout figure (see hasFixedLayout) encodes its geometry in its own canvas
+    // size and draws its margins inside the data area, so resizing or re-margining it here
+    // would pull the geometry away from the text. Size and font are chosen when the step is
+    // calculated; only the title stays editable.
     setPlot({
       data: plot.data,
       layout: {
         ...plot.layout,
-        width: displaySizes.width,
-        height: displaySizes.height,
-        margin: {
-          ...plot.layout.margin,
-          t: settings.marginTop,
-          b: settings.marginBottom,
-          l: settings.marginLeft,
-          r: settings.marginRight,
-        },
+        ...(isFixed
+          ? {}
+          : {
+              width: displaySizes.width,
+              height: displaySizes.height,
+              margin: {
+                ...plot.layout.margin,
+                t: settings.marginTop,
+                b: settings.marginBottom,
+                l: settings.marginLeft,
+                r: settings.marginRight,
+              },
+              font: {
+                ...plot.layout.font,
+                family: settings.selectedFont,
+                size: displaySizes.textSize,
+              },
+            }),
         title: {
           font: {
             family: settings.selectedFont,
             size: displaySizes.titleSize,
           },
           text: settings.title ?? prevTitle,
-        },
-        font: {
-          ...plot.layout.font,
-          family: settings.selectedFont,
-          size: displaySizes.textSize,
         },
       },
     });
@@ -136,6 +161,60 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
     // Only include variables, used functions will not change
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prevTitle, settings]);
+
+  useEffect(() => {
+    if (!isOpen || !canRerender || isLoading) {
+      setIsRendering(false);
+      return;
+    }
+    if (!settings.width || !settings.height || !settings.textSize) {
+      return;
+    }
+    const requestId = ++latestRenderRequest.current;
+    setIsRendering(true);
+    const timer = setTimeout(() => {
+      void callApiWithParameters("rerender_plot/", {
+        run_name: runName,
+        plot_settings: {
+          width: settings.width,
+          height: settings.height,
+          text_size: settings.textSize,
+          font: settings.selectedFont,
+        },
+      })
+        .then((response?: { success?: boolean; message?: string; data?: string[] }) => {
+          // A newer request was started in the meantime, its result wins
+          if (requestId !== latestRenderRequest.current) return;
+          const renderedPlot = response?.data?.[plotIndex];
+          if (response?.success && renderedPlot) {
+            const figure = JSON.parse(renderedPlot) as Figure;
+            setPlot((prev) => ({
+              data: figure.data,
+              layout: { ...figure.layout, title: prev.layout.title },
+            }));
+            setRenderError(undefined);
+          } else {
+            setRenderError(response?.message ?? "The plot could not be rendered at this size.");
+          }
+        })
+        .finally(() => {
+          if (requestId === latestRenderRequest.current) setIsRendering(false);
+        });
+    }, RERENDER_DEBOUNCE_MS);
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [
+    isOpen,
+    canRerender,
+    isLoading,
+    runName,
+    plotIndex,
+    settings.width,
+    settings.height,
+    settings.textSize,
+    settings.selectedFont,
+  ]);
 
   const handleDownload = () => {
     void downloadPlot(plot as Figure);
@@ -206,20 +285,29 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
                 />
               </Col>
             </Row>
-            <Row>
-              {marginFields.map(({ key, label, info }) => (
-                <Col key={key}>
-                  <MarginField
-                    label={label}
-                    info={info}
-                    value={settings[key] as number}
-                    onChange={(v: number) => {
-                      handleSettingChange(key, v);
-                    }}
-                  />
-                </Col>
-              ))}
-            </Row>
+            {isFixed ? (
+              <SectionTitle
+                baseComponent={"h6"}
+                description={
+                  "This plot is laid out for the chosen size and text size and is rendered again when they change. Margins don't apply to it."
+                }
+              />
+            ) : (
+              <Row>
+                {marginFields.map(({ key, label, info }) => (
+                  <Col key={key}>
+                    <MarginField
+                      label={label}
+                      info={info}
+                      value={settings[key] as number}
+                      onChange={(v: number) => {
+                        handleSettingChange(key, v);
+                      }}
+                    />
+                  </Col>
+                ))}
+              </Row>
+            )}
             <SectionTitle
               baseComponent={"h5"}
               title={"Text"}
@@ -263,7 +351,8 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
           </SettingsDiv>
         </Col>
         <Col md={5}>
-          <StyledDiv>
+          <StyledDiv style={{ opacity: isRendering ? 0.5 : 1 }}>
+            {renderError && <SectionTitle baseComponent={"h6"} description={renderError} />}
             {!isLoading && (
               <PlotComponent
                 data={plot.data}
@@ -279,7 +368,13 @@ export const PlotDownloadSettings: React.FC<PlotDownloadSettingsProps> = ({
       <Footer>
         <SecondaryButton text={"Reset to default"} icon="reload" onPress={handleReset} />
         <SecondaryButton text="Save as template" icon="clipboard" onPress={handleSaving} />
-        <Button text="Download plot" icon="download" onPress={handleDownload} />
+        <Button
+          text={isRendering ? "Rendering plot…" : "Download plot"}
+          icon="download"
+          onPress={handleDownload}
+          // The preview must match the chosen size before a fixed-layout plot is exported
+          isDisabled={canRerender && (isRendering || renderError !== undefined)}
+        />
       </Footer>
     </StyledModal>
   );

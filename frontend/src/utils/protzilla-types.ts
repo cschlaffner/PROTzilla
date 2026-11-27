@@ -34,6 +34,8 @@ export interface Step {
   section: SectionIDs;
   input_keys: string[];
   output_keys: string[];
+  input_types?: Record<string, string>;
+  output_types?: Record<string, string>;
   visual_data?: {
     node_position?: {
       x: number;
@@ -49,6 +51,7 @@ export const enum SectionIDs {
   DataPreprocessing = "data_preprocessing",
   DataAnalysis = "data_analysis",
   DataIntegration = "data_integration",
+  Custom = "custom",
 }
 
 export interface Section {
@@ -72,6 +75,10 @@ export const supportedSections: Section[] = [
   {
     id: SectionIDs.DataIntegration,
     name: "Data Integration",
+  },
+  {
+    id: SectionIDs.Custom,
+    name: "Custom",
   },
 ];
 

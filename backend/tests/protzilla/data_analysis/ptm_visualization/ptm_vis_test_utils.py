@@ -215,3 +215,14 @@ def run_plot_and_validate(plot_func, kwargs, validation_config, required_groups)
         required_groups=required_groups,
         validation_config=validation_config,
     )
+
+
+def read_fasta_sequences(fasta_file_path: Path) -> list[str]:
+    """Reads the plain sequences of all records of a fasta file, one string per record."""
+    sequences = []
+    for line in Path(fasta_file_path).read_text().splitlines():
+        if line.startswith(">"):
+            sequences.append("")
+        elif line.strip():
+            sequences[-1] += line.strip()
+    return sequences

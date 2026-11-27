@@ -1,11 +1,8 @@
-# Windows installation guide
+# Mac installation guide
 
 ## :whale: Docker
 
-> [!NOTE]
-> Note: If you have WSL (Windows Subsystem for Linux) installed and prefer using that you can follow the [Linux guide](./Linux.md)
-
-You need to have Docker installed in order to execute PROTzilla. On Windows, this means downloading [Docker Desktop](https://docs.docker.com/desktop/setup/install/windows-install/) and running it before executing the next steps.
+You need to have Docker installed in order to execute PROTzilla. On MacOS, this means downloading [Docker Desktop](https://docs.docker.com/desktop/setup/install/mac-install/) and running it before executing the next steps.
 
 ## Download PROTzilla
 
@@ -15,15 +12,15 @@ You can either use `git` (if available) to clone the repository (this makes retr
 
 #### Prerequisite: Installing `git`
 
-If you don't have `git` installed, you can download it from [here](https://git-scm.com/install/windows). Just follow the instructions of the setup wizard.  
+If you don't have `git` installed, you can find the instructions [here](https://git-scm.com/install/mac).
 
 #### Cloning the repository
 
-1. Navigate to the directory you would like to download PROTzilla to in the file explorer
-2. Open a new command line by right-clicking into blank space while holding down shift and selecting "Open command window here"
+1. Navigate to the directory you would like to download PROTzilla to in the Finder
+2. Open a terminal by right-clicking the directory name while holding down control (compare [here](https://discussions.apple.com/thread/256112405?sortBy=rank)) and selecting "Open in Terminal here"
 3. Enter `git clone https://github.com/cschlaffner/PROTzilla.git`
 
-After the last command has finished, you should see a new directory named "PROTzilla" in the file explorer.
+After the last command has finished, you should see a new directory named "PROTzilla" in the Finder.
 
 ### Downloading the zip
 
@@ -31,7 +28,7 @@ If you only wish to download the current state of the repository, you don't need
 
 ## Configuring PROTzilla (optional)
 
-If you'd like to tweak some settings, you can edit the [compose file](compose.yml). For instance, by default the workflow and run data isn't saved outside of the Docker container. You can still export/import them, but after stopping the service and removing the container, all user uploads would be gone.
+If you'd like to tweak some settings, you can edit the [compose file](https://github.com/cschlaffner/PROTzilla/blob/dev/compose.yml). For instance, by default the workflow and run data isn't saved outside of the Docker container. You can still export/import them, but after stopping the service and removing the container, all user uploads would be gone.
 They can be made persistent by editing this section (find the `prod` section of `services`, should be the first):
 
 ```yaml
@@ -52,8 +49,8 @@ This specifies that the local directory `./backend/user_data` should be mounted 
 
 ## Running PROTzilla
 
-Before executing Docker commands on Windows, you need to start Docker Desktop (otherwise, Docker commands will fail).
-Afterwards, you can open a command shell in the PROTzilla directory (or use the one from the cloning step if you didn't close it) and run `docker compose up -d prod`. This will prepare everything and start the service. Once the command has finished, you can navigate to [localhost:8000](http://localhost:8000) and use PROTzilla!
+Before executing Docker commands on Mac, you need to start Docker Desktop (otherwise, Docker commands will fail).
+Afterwards, you can open the Terminal app in the PROTzilla directory (or use the one from the cloning step if you didn't close it) and run `docker compose up -d prod`. This will prepare everything and start the service. Once the command has finished, you can navigate to [localhost:8000](http://localhost:8000) and use PROTzilla!
 
 > [!NOTE]
 > If you make changes to the code and would like to apply them, you'll need to run `docker compose up --build -d prod`. Like this, the image will be built from local sources and not downloaded from the latest release on Github.

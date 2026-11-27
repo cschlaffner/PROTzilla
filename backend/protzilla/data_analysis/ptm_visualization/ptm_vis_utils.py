@@ -1,14 +1,20 @@
 import csv
+import shutil
+import tempfile
 import types
 from collections import OrderedDict
+from contextlib import contextmanager
+from contextvars import ContextVar
 from pathlib import Path
+from typing import Iterable, Iterator
 
 import pandas as pd
-
-from backend.main.views_helper import load_settings_from_file
+import plotly.graph_objects as go
 from protein_sequencing.data_preprocessing.max_quant_preprocessor import (
     MaxQuantPreprocessor,
 )
+
+from backend.main.views_helper import load_settings_from_file
 from backend.protzilla.constants.paths import (
     CUSTOM_PLOT_SETTINGS_FILE_STEM,
     CUSTOM_PTM_SETTINGS_FILE_STEM,
@@ -38,9 +44,58 @@ def load_regions_from_csv(regions_file_path: Path) -> list:
     return regions
 
 
+# The layout of the PTM plots is calculated based on rendered pixels of the canvas (protein_sequencing sets
+# xaxis.range == [0, FIGURE_WIDTH] with zero margins, and reserves label slots via FONT_SIZE).
+# Plotly's layout.width/height are CSS pixels, i.e. 96 dpi, so the canvas has to be sized in that same unit or geometry
+# and text drift apart. The 300 dpi export resolution is applied uniformly at download time through Plotly's `scale`
+# argument instead.
+SCREEN_DPI = 96
+POINTS_PER_INCH = 72
+
+
 def convert_settings_mm_size_to_px(size):
-    # Convert width/height in mm to px using 300 dpi
-    return (size / 25.4) * 300
+    # Convert width/height in mm to CSS px (96 dpi), the unit Plotly lays out in
+    return (size / 25.4) * SCREEN_DPI
+
+
+def convert_settings_pt_size_to_px(size):
+    # Convert a font size in pt to CSS px (96 dpi)
+    return round(size * SCREEN_DPI / POINTS_PER_INCH)
+
+
+def mark_as_fixed_layout(fig: go.Figure) -> go.Figure:
+    """Tag a figure whose geometry only holds at its own canvas size.
+
+    The PTM plots calculate shape and annotation positions, as well as their sizes, based on the rendered pixels of
+    ``layout.width``/``layout.height``. Rescaling such a figure in the browser moves the geometry but not the text,
+    which makes labels overlap, so the plot download has to leave width, height and margins untouched.
+    The flag is how the frontend recognises those figures.
+    """
+    meta = fig.layout.meta if isinstance(fig.layout.meta, dict) else {}
+    fig.update_layout(meta={**meta, "fixed_layout": True})
+    return fig
+
+
+# Plot settings that take precedence over the saved plot settings template while a PTM plot is rendered, see
+# override_plot_settings.
+_plot_settings_override: ContextVar[dict | None] = ContextVar(
+    "ptm_plot_settings_override", default=None
+)
+
+
+@contextmanager
+def override_plot_settings(plot_settings: dict) -> Iterator[None]:
+    """Render PTM plots with the given plot settings instead of the saved template.
+
+    The PTM plots' size and text size are fixed when they are created (see mark_as_fixed_layout), so a different export
+    size can only be achieved by rendering the figure again. Otherwise, this may cause text to overlap onto figure
+    elements. Only the keys that are passed are overridden (e.g. width, height, text_size, font, custom_font).
+    """
+    token = _plot_settings_override.set(dict(plot_settings))
+    try:
+        yield
+    finally:
+        _plot_settings_override.reset(token)
 
 
 def get_modifications_dict(full_modifications_dict) -> dict:
@@ -56,10 +111,13 @@ def get_general_config_module(
 ) -> types.ModuleType:
     regions = load_regions_from_csv(regions_file_path)
 
-    protzilla_plot_settings = load_settings_from_file(
-        file_stem=CUSTOM_PLOT_SETTINGS_FILE_STEM,
-        default_file_stem=DEFAULT_PLOT_SETTINGS_FILE_STEM,
-    )
+    protzilla_plot_settings = {
+        **load_settings_from_file(
+            file_stem=CUSTOM_PLOT_SETTINGS_FILE_STEM,
+            default_file_stem=DEFAULT_PLOT_SETTINGS_FILE_STEM,
+        ),
+        **(_plot_settings_override.get() or {}),
+    }
     protzilla_ptm_settings = load_settings_from_file(
         file_stem=CUSTOM_PTM_SETTINGS_FILE_STEM,
         default_file_stem=DEFAULT_PTM_SETTINGS_FILE_STEM,
@@ -98,7 +156,9 @@ def get_general_config_module(
             "FIGURE_HEIGHT": convert_settings_mm_size_to_px(
                 protzilla_plot_settings["height"]
             ),
-            "FONT_SIZE": protzilla_plot_settings["text_size"],
+            "FONT_SIZE": convert_settings_pt_size_to_px(
+                protzilla_plot_settings["text_size"]
+            ),
             # Default Parameters
             "FONT": (
                 protzilla_plot_settings["custom_font"]
@@ -106,8 +166,12 @@ def get_general_config_module(
                 else protzilla_plot_settings["font"]
             ),
             # Sequence Plot
-            "SEQUENCE_PLOT_FONT_SIZE": protzilla_plot_settings["text_size"],
-            "SEQUENCE_PLOT_HEIGHT": 50,
+            "SEQUENCE_PLOT_FONT_SIZE": convert_settings_pt_size_to_px(
+                protzilla_plot_settings["text_size"]
+            ),
+            # Tied to the font so that the region names always fit into the sequence box and overflows are avoided
+            "SEQUENCE_PLOT_HEIGHT": 2
+            * convert_settings_pt_size_to_px(protzilla_plot_settings["text_size"]),
             "EXONS_GAP": 10,
             "MIN_EXON_LENGTH": 5,
             "SEQUENCE_REGION_COLORS": protzilla_ptm_settings["color_settings"][
@@ -191,3 +255,172 @@ def preprocess_files(
         metadata_column=metadata_column,
     )
     return config_module, out_dir
+
+
+# The modification file written by protein_sequencing's preprocessor_helper.write_results starts
+# with three metadata rows (modification type, label and isoform) before the per-sample rows.
+MOD_FILE_HEADER_ROWS = 3
+# Internal join key, holding the raw label of a modification site (e.g. "S199"). Dropped again
+# before the table is handed to the front-end.
+PTM_LABEL_COLUMN = "_ptm_label"
+IN_PLOT_COLUMN = "In Plot"
+MODIFICATION_TABLE_COLUMNS = ("Location", "Amino Acid", "Modification", "Isoform")
+MODIFICATION_KEY_COLUMNS = ("Modification", PTM_LABEL_COLUMN, "Isoform")
+
+
+def resolve_modification_type(modification_type: str, amino_acid: str) -> str:
+    """
+    Applies the same renaming that the plotters apply when they read the modification file (see
+    OverviewPlotter.get_modifications_per_position). It is just a quirk that Deamidation and
+    Citrullination are treated as the same modification type in some contexts. Without
+    remapping, counts would not join onto the modification table for citrullinated sites.
+    """
+    if amino_acid == "R" and modification_type == "Deamidated":
+        return "Citrullination"
+    return modification_type
+
+
+def read_modification_file(mod_file: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Splits the modification file into its metadata header rows and its per-sample rows."""
+    df = pd.read_csv(mod_file, dtype={"ID": str, "Group": str})
+    return df.iloc[:MOD_FILE_HEADER_ROWS], df.iloc[MOD_FILE_HEADER_ROWS:]
+
+
+def group_count_column_name(group: str, group_size: int) -> str:
+    # The group size is part of the name so that the fraction the plots actually draw
+    # (count / group size) can be read off the table.
+    return f"{group} (n={group_size})"
+
+
+def get_ptm_counts_per_group(mod_file: Path, groups: Iterable[str]) -> pd.DataFrame:
+    """
+    Counts, per group, in how many samples each modification site was detected.
+
+    The modification file holds one binary "was this PTM detected" flag per sample and site, so
+    summing over a group yields the number of samples of that group in which the PTM was seen.
+
+    :param mod_file: the modification file written by the preprocessor
+    :param groups: the groups to create count columns for, in the order they should appear
+    :return: a DataFrame with the columns "Modification", PTM_LABEL_COLUMN and "Isoform" plus one
+        count column per group
+    """
+    header, samples = read_modification_file(mod_file)
+    modification_columns = [
+        column for column in header.columns if column not in ("ID", "Group")
+    ]
+
+    counts = pd.DataFrame(
+        {
+            "Modification": [
+                resolve_modification_type(
+                    header[column].iloc[0], header[column].iloc[1][0]
+                )
+                for column in modification_columns
+            ],
+            PTM_LABEL_COLUMN: [
+                header[column].iloc[1] for column in modification_columns
+            ],
+            "Isoform": [header[column].iloc[2] for column in modification_columns],
+        }
+    )
+
+    group_sizes = samples["Group"].value_counts()
+    detected_per_group = (
+        samples[modification_columns].astype(int).groupby(samples["Group"]).sum()
+    )
+    for group in groups:
+        column_name = group_count_column_name(group, int(group_sizes.get(group, 0)))
+        if group in detected_per_group.index:
+            counts[column_name] = (
+                detected_per_group.loc[group, modification_columns].astype(int).values
+            )
+        else:
+            counts[column_name] = 0
+
+    return counts
+
+
+def add_group_counts_to_modifications(
+    modification_df: pd.DataFrame,
+    mod_file: Path,
+    groups: Iterable[str],
+    plotted_sites: set[tuple[str, str, str]],
+) -> pd.DataFrame:
+    """
+    Adds an "In Plot" marker and one sample-count column per group to a modification table.
+
+    The join runs on the modification label (e.g. "S8") instead of the reported location, because
+    the location depends on the exon offsets of the plotter that produced the table, while the
+    label is taken verbatim from the modification file.
+
+    :param modification_df: a table as produced by get_modification_table(include_label=True)
+    :param mod_file: the modification file written by the preprocessor
+    :param groups: the groups the plot shows, in the order they should appear
+    :param plotted_sites: the (modification, label, isoform) triples the plot actually draws
+    :return: the table with the additional columns and without the internal label column
+    """
+    counts = get_ptm_counts_per_group(mod_file, groups)
+    group_columns = [
+        column for column in counts.columns if column not in MODIFICATION_KEY_COLUMNS
+    ]
+    counts[IN_PLOT_COLUMN] = [
+        (modification, label, isoform) in plotted_sites
+        for modification, label, isoform in zip(
+            counts["Modification"], counts[PTM_LABEL_COLUMN], counts["Isoform"]
+        )
+    ]
+
+    merged = modification_df.merge(
+        counts, on=list(MODIFICATION_KEY_COLUMNS), how="left"
+    )
+    merged[IN_PLOT_COLUMN] = merged[IN_PLOT_COLUMN].fillna(False).astype(bool)
+    merged[group_columns] = merged[group_columns].fillna(0).astype(int)
+
+    displayed_columns = [
+        column for column in modification_df.columns if column != PTM_LABEL_COLUMN
+    ]
+    return merged[[*displayed_columns, IN_PLOT_COLUMN, *group_columns]]
+
+
+def get_plotted_sites_from_positions(
+    modification_sites_by_position: dict,
+) -> set[tuple[str, str, str]]:
+    """Extracts the plotted (modification, label, isoform) triples from a BarPlotter filter result."""
+    return {
+        (resolve_modification_type(site[1], site[0][0]), site[0], site[3])
+        for sites in modification_sites_by_position.values()
+        for site in sites
+    }
+
+
+def get_plotted_sites_from_columns(
+    filtered_df: pd.DataFrame,
+) -> set[tuple[str, str, str]]:
+    """Extracts the plotted (modification, label, isoform) triples from a DetailsPlotter filter result."""
+    return {
+        (
+            resolve_modification_type(
+                filtered_df[column].iloc[0], filtered_df[column].iloc[1][0]
+            ),
+            filtered_df[column].iloc[1],
+            filtered_df[column].iloc[2],
+        )
+        for column in filtered_df.columns
+        if column not in ("ID", "Group")
+    }
+
+
+@contextmanager
+def preserve_modification_file(modification_file: Path) -> Iterator[Path]:
+    """
+    Yields a copy of the modification file that survives plotting.
+
+    The plotters wipe their whole output directory once the figure is finished (see
+    Plotter.finalize_plotting -> Plotter.clean_up), so the modification file is gone by the time
+    the plot has been created. The copy lets the group counts be derived afterwards, which is
+    required for the details plot because its position offsets only exist once it has been plotted.
+    """
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        preserved_file = Path(tmp_dir) / Path(modification_file).name
+        shutil.copyfile(modification_file, preserved_file)
+        yield preserved_file

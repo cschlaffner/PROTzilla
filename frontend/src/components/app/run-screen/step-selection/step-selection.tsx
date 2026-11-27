@@ -1,27 +1,32 @@
 import type { IconType } from "@protzilla/core";
 import {
   Button,
+  DeleteModal,
   GrayButton,
   Icon,
   IconButton,
   iconColor,
   Modal,
+  NameModal,
+  SecondaryButton,
   SectionTitle,
   ToggleableButton,
 } from "@protzilla/core";
 import { useOutsidePress, useToggleableState } from "@protzilla/hooks";
-import { color, shadow, size, spacing } from "@protzilla/theme";
+import { color, size, spacing } from "@protzilla/theme";
 import { callApi, callApiWithParameters, SectionIDs } from "@protzilla/utils";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { styled } from "styled-components";
 
 import { StepSelectionProps } from "./step-selection.props.ts";
+import { DOCUMENTATION_URL } from "../../../../constants";
 
 const sectionModes = {
   [SectionIDs.Importing]: "Importing",
   [SectionIDs.DataPreprocessing]: "Data Preprocessing",
   [SectionIDs.DataAnalysis]: "Data Analysis",
   [SectionIDs.DataIntegration]: "Data Integration",
+  [SectionIDs.Custom]: "Custom",
 };
 
 const allSteps = "All steps";
@@ -32,9 +37,41 @@ export interface StepItem {
   display_name: string;
   operation: string;
   operation_display_name: string;
-  method_description: string;
   calculation_status: string;
 }
+
+interface CustomStepTemplate {
+  name: string;
+  step_name: string;
+}
+
+const documentationPages: Partial<Record<string, string>> = {
+  ArbitraryCSVImport: "importing",
+  CustomPythonStep: "custom-steps",
+  DiannImport: "importing/dia-nn-import",
+  FastaImport: "importing/fasta-protein-sequence-import",
+  FilterByProteinsCount: "data-preprocessing/filter-samples-proteins-per-sample",
+  FilterProteinsByNumberOfValuesPerGroup: "data-preprocessing/filter-proteins-values-per-group",
+  ImputationByNormalDistributionSampling:
+    "data-preprocessing/imputation-normal-distribution-sampling",
+  MetadataColumnAssignment: "importing/metadata-column-assignment",
+  MsFraggerImport: "importing/ms-fragger-combined-protein-import",
+  NormalisationByTotalSum: "data-preprocessing/normalisation-total-sum",
+  PeptideImport: "importing/maxquant-peptide-import",
+};
+
+const stepDocumentationUrl = (step: StepItem) => {
+  const slug = step.display_name
+    .toLowerCase()
+    .replace("ptm diff. exp.", "ptm differential expression")
+    .replace("diff. expression", "differential expression")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  const page =
+    documentationPages[step.method_name] ??
+    `${step.section.replace(/_/g, "-")}/${slug}${step.section === "importing" ? "-import" : ""}`;
+  return `${DOCUMENTATION_URL}step-documentation/${page}/`;
+};
 
 const stepOperationIconMap: Partial<Record<string, string>> = {
   classification: "stepClassification",
@@ -56,6 +93,11 @@ const stepOperationIconMap: Partial<Record<string, string>> = {
 
 const fetchStepList = async (): Promise<StepItem[]> => {
   return callApi("step_list/");
+};
+
+const fetchCustomSteps = async (): Promise<CustomStepTemplate[]> => {
+  const response = await callApi("custom_steps/");
+  return response.data;
 };
 
 const WideModal = styled(Modal)`
@@ -101,6 +143,17 @@ const StepWrapper = styled.div`
   padding: ${spacing("listButtonPadding")};
 `;
 
+const CustomStepWrapper = styled(StepWrapper)`
+  display: flex;
+  align-items: center;
+  gap: ${spacing("verySmall")};
+`;
+
+const CustomStepActions = styled.div`
+  display: flex;
+  margin-left: auto;
+`;
+
 const LightGrayButton = styled(GrayButton)`
   background-color: ${color("backgroundOffset")};
 `;
@@ -120,14 +173,6 @@ const HelpButton = styled(Button)`
     height: ${size("smallIcon")};
     ${iconColor("protzillaGray")}
   }
-`;
-
-const StepDescriptionDropdown = styled.div`
-  box-shadow: ${shadow("tooltip")};
-  margin-top: ${spacing("verySmall")};
-  padding: ${spacing("small")};
-  background-color: ${color("backgroundOffset")};
-  max-width: 95%;
 `;
 
 const OperationIconWrapper = styled.div`
@@ -158,8 +203,11 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
 
   // - - - Step list handling - - -
   const [allStepsList, setAllStepsList] = useState<StepItem[]>([]);
-  const [listMode, setListMode] = useState<string>(); // now for operations
+  const [listMode, setListMode] = useState(allSteps);
   const [activeStepList, setActiveStepList] = useState<StepItem[]>([]);
+  const [customSteps, setCustomSteps] = useState<CustomStepTemplate[]>([]);
+  const [customStepToRename, setCustomStepToRename] = useState<CustomStepTemplate | null>(null);
+  const [customStepToDelete, setCustomStepToDelete] = useState<CustomStepTemplate | null>(null);
 
   useEffect(() => {
     if (!selectedSection) return;
@@ -214,6 +262,11 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
     [stepsGroupedByOperation],
   );
 
+  const operationTitle = (operation: string) =>
+    section === SectionIDs.Custom && operation === "others"
+      ? "Create blank Step"
+      : stepsGroupedByOperation[operation][0].operation_display_name;
+
   // - - - API calls - - -
   const handleAddStep = async (run_name: string, method_name: string) => {
     await callApiWithParameters("add_step/", {
@@ -224,6 +277,18 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
     });
   };
 
+  const updateCustomStep = async (action: string, name: string, new_name = "") => {
+    const response = await callApiWithParameters("custom_steps/", {
+      action,
+      name,
+      new_name,
+      run_name: runName,
+    });
+    if (!response.success) return;
+    if (action === "add") onAddStep();
+    else setCustomSteps(await fetchCustomSteps());
+  };
+
   // - - - Modal handling - - -
   const [isModalOpen, openModal, closeModal] = useToggleableState(false);
   const refModal = useRef<HTMLDivElement>(null);
@@ -232,10 +297,8 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
   const handleOpenModal = () => {
     openModal();
     setSelectedSection(section);
+    if (section === SectionIDs.Custom) void fetchCustomSteps().then(setCustomSteps);
   };
-
-  // - - - Step description dropdown - - -
-  const [visibleDescription, setVisibleDescription] = useState<string | null>(null);
 
   // - - - Render - - -
   return (
@@ -286,17 +349,13 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
             <MakeRowDiv>
               <SectionSelection>
                 {operationModes.map((mode: string) => {
-                  const buttonLabel =
-                    mode === "All steps"
-                      ? "All Steps"
-                      : (stepsGroupedByOperation[mode][0]?.operation_display_name ?? "Unknown");
+                  const buttonLabel = mode === "All steps" ? "All Steps" : operationTitle(mode);
                   return (
                     <SectionButton
                       key={mode}
                       isActive={listMode === mode}
                       onPress={() => {
                         selectList(mode);
-                        setVisibleDescription(null);
                       }}
                       text={buttonLabel}
                     ></SectionButton>
@@ -319,7 +378,7 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                       .filter((op) => op !== allSteps)
                       .map((operation) => {
                         const icon = stepOperationIconMap[operation] ?? (section as IconType);
-                        const title = stepsGroupedByOperation[operation][0].operation_display_name;
+                        const title = operationTitle(operation);
 
                         return (
                           <div key={operation}>
@@ -343,19 +402,8 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                                   />
                                   <HelpButton
                                     icon={"help"}
-                                    onPress={() => {
-                                      setVisibleDescription(
-                                        visibleDescription === item.method_name
-                                          ? null
-                                          : item.method_name,
-                                      );
-                                    }}
+                                    onPress={() => window.open(stepDocumentationUrl(item))}
                                   />
-                                  {visibleDescription === item.method_name && (
-                                    <StepDescriptionDropdown>
-                                      {item.method_description}
-                                    </StepDescriptionDropdown>
-                                  )}
                                 </StepWrapper>
                               ))}
                             </div>
@@ -366,20 +414,11 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                     <div>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <OperationIconWrapper>
-                          <Icon
-                            icon={
-                              // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                              (stepOperationIconMap[listMode as string] ?? section) as IconType
-                            }
-                          />
+                          <Icon icon={(stepOperationIconMap[listMode] ?? section) as IconType} />
                         </OperationIconWrapper>
                         <SectionTitle
                           baseComponent={"h3"}
-                          description={
-                            // eslint-disable-next-line
-                            stepsGroupedByOperation[listMode as string]?.[0]
-                              .operation_display_name || ""
-                          }
+                          description={operationTitle(listMode)}
                         ></SectionTitle>
                       </div>
                       <div style={{ padding: "10px 10px 10px 20px" }}>
@@ -396,20 +435,45 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
                             />
                             <HelpButton
                               icon={"help"}
-                              onPress={() => {
-                                setVisibleDescription(
-                                  visibleDescription === item.method_name ? null : item.method_name,
-                                );
-                              }}
+                              onPress={() => window.open(stepDocumentationUrl(item))}
                             />
-                            {visibleDescription === item.method_name && (
-                              <StepDescriptionDropdown>
-                                {item.method_description}
-                              </StepDescriptionDropdown>
-                            )}
                           </StepWrapper>
                         ))}
                       </div>
+                    </div>
+                  )}
+                  {section === SectionIDs.Custom && customSteps.length > 0 && (
+                    <div>
+                      <SectionTitle baseComponent={"h3"} description={"Saved custom steps"} />
+                      {customSteps.map((template) => (
+                        <CustomStepWrapper key={template.name}>
+                          <LightGrayButton
+                            onPress={() => void updateCustomStep("add", template.name)}
+                            text={template.step_name}
+                          />
+                          <CustomStepActions>
+                            <SecondaryButton
+                              isSmall={true}
+                              isShy={true}
+                              onPress={() => {
+                                setCustomStepToRename(template);
+                              }}
+                            >
+                              <Icon icon={"edit"} style={{ height: "15px" }} />
+                            </SecondaryButton>
+                            <SecondaryButton
+                              isSmall={true}
+                              isShy={true}
+                              isCautious={true}
+                              onPress={() => {
+                                setCustomStepToDelete(template);
+                              }}
+                            >
+                              <Icon icon={"trash"} style={{ height: "15px" }} />
+                            </SecondaryButton>
+                          </CustomStepActions>
+                        </CustomStepWrapper>
+                      ))}
                     </div>
                   )}
                 </StepList>
@@ -417,6 +481,31 @@ export const StepSelection: React.FC<StepSelectionProps> = ({
             </MakeRowDiv>
           </BorderDiv>
         </WideModal>
+        <NameModal
+          title="Rename custom step"
+          label="With custom step name:"
+          submitLabel="Rename custom step"
+          initialValue={customStepToRename?.step_name}
+          isOpen={customStepToRename !== null}
+          onClose={() => {
+            setCustomStepToRename(null);
+          }}
+          onSubmit={(name) => {
+            if (customStepToRename) void updateCustomStep("rename", customStepToRename.name, name);
+            setCustomStepToRename(null);
+          }}
+        />
+        <DeleteModal
+          title={`Delete custom step "${customStepToDelete?.step_name ?? ""}"?`}
+          isOpen={customStepToDelete !== null}
+          onClose={() => {
+            setCustomStepToDelete(null);
+          }}
+          onConfirm={() => {
+            if (customStepToDelete) void updateCustomStep("delete", customStepToDelete.name);
+            setCustomStepToDelete(null);
+          }}
+        />
       </div>
     </div>
   );

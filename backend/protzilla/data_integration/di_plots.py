@@ -11,6 +11,7 @@ from backend.protzilla.steps import OutputItem, OutputType
 from backend.protzilla.utilities.utilities import fig_to_base64
 
 
+# --8<-- [start:GO_enrichment_bar_plot]
 def GO_enrichment_bar_plot(
     enrichment_df,
     top_terms,
@@ -121,6 +122,10 @@ def GO_enrichment_bar_plot(
     return [fig]
 
 
+# --8<-- [end:GO_enrichment_bar_plot]
+
+
+# --8<-- [start:GO_enrichment_dot_plot]
 def GO_enrichment_dot_plot(
     enrichment_df,
     top_terms,
@@ -169,7 +174,6 @@ def GO_enrichment_dot_plot(
     ):
         msg = "Please input a dataframe from offline GO enrichment analysis or GO enrichment analysis with Enrichr."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
-
     if enrichment_df is None or len(enrichment_df) == 0 or enrichment_df.empty:
         msg = "No data to plot. Please check your input data or run enrichment again."
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
@@ -236,6 +240,10 @@ def GO_enrichment_dot_plot(
         return dict(messages=[dict(level=logging.ERROR, msg=msg)])
 
 
+# --8<-- [end:GO_enrichment_dot_plot]
+
+
+# --8<-- [start:gsea_dot_plot]
 def gsea_dot_plot(
     gsea_df,
     cutoff=0.05,
@@ -323,6 +331,10 @@ def gsea_dot_plot(
         return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])
 
 
+# --8<-- [end:gsea_dot_plot]
+
+
+# --8<-- [start:gsea_enrichment_plot]
 def gsea_enrichment_plot(
     term_dict=None,
     term_name=None,
@@ -383,3 +395,6 @@ def gsea_enrichment_plot(
     except Exception as e:
         msg = f"Could not plot enrichment plot for term {term_name}."
         return dict(messages=[dict(level=logging.ERROR, msg=msg, trace=str(e))])
+
+
+# --8<-- [end:gsea_enrichment_plot]

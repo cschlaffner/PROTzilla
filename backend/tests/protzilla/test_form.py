@@ -25,7 +25,7 @@ from backend.protzilla.form import (
 
 # These are the types that need to be serialized by CustomEncoder when get_step_form is called. If this set is extended,
 # make sure that CustomEncoder can handle it as well.
-ALLOWED_LEAVES = {str, int, float, bool, type(None), list, PurePath}
+ALLOWED_LEAVES = {str, int, float, bool, type(None), list, dict, PurePath}
 
 
 def all_field_classes(root=_baseField):

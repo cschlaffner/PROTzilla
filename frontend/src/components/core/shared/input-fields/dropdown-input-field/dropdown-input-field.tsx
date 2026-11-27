@@ -115,7 +115,7 @@ export const DropdownInputField: React.FC<DropdownInputFieldProps> = memo(
       }
       //component should only rerender on change of options because of multiple occurrences of dropdown forms
       //eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [options]);
+    }, [options, value]);
 
     const dropdownRef = useRef<HTMLUListElement | null>(null);
     const inputRef = useRef<HTMLDivElement | null>(null);

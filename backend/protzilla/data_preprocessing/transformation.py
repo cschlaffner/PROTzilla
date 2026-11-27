@@ -9,6 +9,7 @@ from backend.protzilla.data_preprocessing.plots import (
 from backend.protzilla.utilities.utilities import default_intensity_column
 
 
+# --8<-- [start:by_inversion]
 def by_inversion(
     protein_df: pd.DataFrame, peptide_df: pd.DataFrame | None = None
 ) -> dict:
@@ -44,6 +45,10 @@ def by_inversion(
     return dict(protein_df=transformed_df, peptide_df=transformed_peptide_df)
 
 
+# --8<-- [end:by_inversion]
+
+
+# --8<-- [start:by_log]
 def by_log(
     protein_df: pd.DataFrame,
     peptide_df: pd.DataFrame | None = None,
@@ -85,6 +90,9 @@ def by_log(
     return dict(protein_df=transformed_df, peptide_df=transformed_peptide_df)
 
 
+# --8<-- [end:by_log]
+
+
 def transformation_plot(
     protein_df, output_protein_df, graph_type, group_by, show_outliers=True
 ):
@@ -112,6 +120,7 @@ def transformation_plot(
     return [fig]
 
 
+# --8<-- [start:by_scaling]
 def transform_df_by_scale(
     df: pd.DataFrame,
     min_value: float,
@@ -173,3 +182,6 @@ def by_scaling(
         )
 
     return dict(protein_df=transformed_df, peptide_df=transformed_peptide_df)
+
+
+# --8<-- [end:by_scaling]

@@ -1,5 +1,9 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 from abc import ABC
+import keyword
+import textwrap
+import numpy as np
+import pandas as pd
 from typing_extensions import override
 
 from backend.protzilla.constants.data_types import DataKey
@@ -11,7 +15,10 @@ from backend.protzilla.form import (
     Form,
     FormDivider,
     HeaderInfoField,
+    InfoField,
+    NamedHandlesField,
     Option,
+    TextField,
 )
 from backend.protzilla.importing.debug_import import arbitrary_csv_import
 from backend.protzilla.importing.metadata_import import (
@@ -33,6 +40,42 @@ from backend.protzilla.importing.import_utils import (
     FeatureOrientationType,
 )
 from backend.protzilla.constants.intensity_types import IntensityType, IntensityNameType
+from backend.protzilla.utilities.utilities import default_intensity_column
+
+
+# --8<-- [start:custom_python_step]
+def custom_python_step(code: str, selected_outputs: list[str], **inputs):
+    if not code.strip():
+        raise ValueError("Please provide Python code.")
+    if not selected_outputs:
+        raise ValueError("Please select at least one output.")
+
+    namespace = {
+        "np": np,
+        "pd": pd,
+        "default_intensity_column": default_intensity_column,
+        **inputs,
+    }
+    exec(
+        "def _custom_step():\n" + textwrap.indent(code, "    "),
+        namespace,
+    )
+    result = namespace["_custom_step"]()
+    if not isinstance(result, dict):
+        raise ValueError("Custom step code must return a dictionary.")
+
+    missing_outputs = [
+        output_key for output_key in selected_outputs if output_key not in result
+    ]
+    if missing_outputs:
+        raise ValueError(
+            f"Custom step did not return the selected outputs: {', '.join(missing_outputs)}."
+        )
+
+    return result
+
+
+# --8<-- [end:custom_python_step]
 
 
 class ImportingStep(Step, ABC):
@@ -426,3 +469,92 @@ class ExampleDatasetImport(ImportingStep):
             if import_peptide_data_field.value
             else [DataKey.METADATA_DF, DataKey.PROTEIN_DF]
         )
+
+
+class CustomPythonStep(ImportingStep):
+    section = Section.CUSTOM
+    display_name = "Custom Python Step"
+    operation = StepOperation.NOT_CATEGORIZED
+    method_description = "Run custom Python code inside PROTzilla."
+
+    def create_form(self):
+        data_key_options = [
+            Option(data_key.value, data_key.value) for data_key in DataKey
+        ]
+        return Form(
+            label="Custom Python Step",
+            input_fields=[
+                HeaderInfoField(label=self.method_description),
+                NamedHandlesField(
+                    name="selected_inputs",
+                    label="Inputs",
+                    options=data_key_options,
+                    value=[],
+                ),
+                NamedHandlesField(
+                    name="selected_outputs",
+                    label="Outputs",
+                    options=data_key_options,
+                    value=[],
+                ),
+                TextField(
+                    name="code",
+                    label="Python code",
+                    rows=12,
+                    isCodeEditor=True,
+                    value="return dict()",
+                ),
+                InfoField(
+                    label="⚠️ Never import code that you do not trust. ⚠️",
+                ),
+            ],
+        )
+
+    def _handles(self, field_name: str) -> list[dict[str, str]]:
+        handles = [
+            {"name": handle, "type": handle} if isinstance(handle, str) else handle
+            for handle in self.form[field_name].value
+        ]
+        self.form[field_name].value = handles
+        names = [handle["name"] for handle in handles]
+        if len(names) != len(set(names)):
+            raise ValueError(f"{field_name} names must be unique.")
+        if any(not name.isidentifier() or keyword.iskeyword(name) for name in names):
+            raise ValueError(f"{field_name} names must be valid Python identifiers.")
+        for handle in handles:
+            DataKey(handle["type"])
+        return handles
+
+    @property
+    def input_handles(self) -> list[dict[str, str]]:
+        return self._handles("selected_inputs")
+
+    @property
+    def output_handles(self) -> list[dict[str, str]]:
+        return self._handles("selected_outputs")
+
+    @property
+    def external_input_keys(self) -> list[str]:
+        return [handle["name"] for handle in self.input_handles]
+
+    @property
+    def output_keys(self) -> list[str]:
+        return [handle["name"] for handle in self.output_handles]
+
+    @property
+    def input_types(self) -> dict[str, str]:
+        return {handle["name"]: handle["type"] for handle in self.input_handles}
+
+    @property
+    def output_types(self) -> dict[str, str]:
+        return {handle["name"]: handle["type"] for handle in self.output_handles}
+
+    @property
+    def calculation_input(self) -> dict:
+        return {
+            "code": self.form["code"].value,
+            "selected_outputs": self.output_keys,
+            **{key: self.inputs.get(key) for key in self.external_input_keys},
+        }
+
+    calc_method = staticmethod(custom_python_step)

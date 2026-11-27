@@ -17,6 +17,7 @@ from .differential_expression_helper import (
 )
 
 
+# --8<-- [start:linear_model]
 def linear_model(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
@@ -158,7 +159,7 @@ def linear_model(
             messages=messages,
         )
 
-    (corrected_p_values, corrected_alpha) = apply_multiple_testing_correction(
+    corrected_p_values, corrected_alpha = apply_multiple_testing_correction(
         p_values=p_values,
         method=multiple_testing_correction_method,
         alpha=alpha,
@@ -201,3 +202,6 @@ def linear_model(
         filtered_proteins=filtered_proteins,
         messages=messages,
     )
+
+
+# --8<-- [end:linear_model]

@@ -25,12 +25,18 @@ class SimpleImputerStrategyType(StrEnum):
 
 class ImputationByNormalDistributionSamplingStrategyType(StrEnum):
     PER_PROTEIN = "perProtein"
+    PER_SAMPLE = "perSample"
     PER_DATASET = "perDataset"
 
 
 class BarAndPieChart(StrEnum):
     BAR_PLOT = "Bar chart"
     PIE_CHART = "Pie chart"
+
+
+class GroupValueRequirement(StrEnum):
+    EVERY_GROUP = "In every group"
+    AT_LEAST_ONE_GROUP = "In at least one group"
 
 
 class BoxAndHistogramGraph(StrEnum):

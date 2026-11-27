@@ -2,11 +2,14 @@ import types
 from pathlib import Path
 
 import pandas as pd
-
 from protein_sequencing.overview_plot import OverviewPlotter
+
 from backend.protzilla.data_analysis.ptm_visualization.ptm_vis_utils import (
-    preprocess_files,
+    MODIFICATION_TABLE_COLUMNS,
+    PTM_LABEL_COLUMN,
     get_modification_groups_from_settings,
+    mark_as_fixed_layout,
+    preprocess_files,
 )
 
 
@@ -27,21 +30,22 @@ def get_overview_plot_config_module(out_dir: Path) -> types.ModuleType:
     return plot_config_module
 
 
-def get_detected_modifications(
-    psm_df: pd.DataFrame,
-    evidence_file_q_value_threshold: float,
+def get_modification_table(
+    config_module: types.ModuleType,
+    out_dir: Path,
     fasta_file_path: Path,
-    regions_file_path: Path,
-) -> dict:
-    # Although this function is used by different steps, it is tied to the OverviewPlot and thus is placed in this file
-    # Everything else would require a bigger rework of the underlying code.
-    config_module, out_dir = preprocess_files(
-        psm_df=psm_df,
-        evidence_file_q_value_threshold=evidence_file_q_value_threshold,
-        fasta_file_path=fasta_file_path,
-        regions_file_path=regions_file_path,
-    )
+    mod_file: Path,
+    include_label: bool = False,
+) -> pd.DataFrame:
+    """
+    Builds the table of all modifications detected in the modification file.
 
+    Although this function is used by different steps, it is tied to the OverviewPlot and thus is
+    placed in this file. Everything else would require a bigger rework of the underlying code.
+
+    :param include_label: whether to keep the internal label column (e.g. "S8"), which the group
+        aware plots use to join their sample counts onto the table
+    """
     plot_config_module = get_overview_plot_config_module(out_dir)
     overview_plotter = OverviewPlotter(
         config=config_module,
@@ -51,21 +55,49 @@ def get_detected_modifications(
     )
 
     modifications_by_position = overview_plotter.get_modifications_per_position(
-        overview_plotter.plot_config.INPUT_FILE,
+        mod_file,
         filter_based_on_modifications_group=False,
     )
+    # The dict is keyed by the position the plotter renders a site at, which carries the exon
+    # offsets of the plot and does not match the protein sequence. The label (e.g. "S8") holds the
+    # position in the sequence, which is also what the plots label their sites with.
     modifications_list = [
-        (location, mod[0][0], mod[1], mod[3])
-        for location, sublist in modifications_by_position.items()
+        (int(mod[0][1:]), mod[0][0], mod[1], mod[3], mod[0])
+        for sublist in modifications_by_position.values()
         for mod in sublist
     ]
     modification_df = pd.DataFrame(
         modifications_list,
-        columns=("Location", "Amino Acid", "Modification", "Isoform"),
+        columns=(*MODIFICATION_TABLE_COLUMNS, PTM_LABEL_COLUMN),
+    )
+    if include_label:
+        return modification_df
+    return modification_df.drop(columns=[PTM_LABEL_COLUMN])
+
+
+def get_detected_modifications(
+    psm_df: pd.DataFrame,
+    evidence_file_q_value_threshold: float,
+    fasta_file_path: Path,
+    regions_file_path: Path,
+) -> dict:
+    config_module, out_dir = preprocess_files(
+        psm_df=psm_df,
+        evidence_file_q_value_threshold=evidence_file_q_value_threshold,
+        fasta_file_path=fasta_file_path,
+        regions_file_path=regions_file_path,
+    )
+
+    modification_df = get_modification_table(
+        config_module=config_module,
+        out_dir=out_dir,
+        fasta_file_path=fasta_file_path,
+        mod_file=out_dir / "result_max_quant_mods.csv",
     )
     return dict(modification_df=modification_df)
 
 
+# --8<-- [start:create_overview_ptm_visualization]
 def create_overview_ptm_visualization(
     psm_df: pd.DataFrame,
     evidence_file_q_value_threshold: float,
@@ -88,4 +120,7 @@ def create_overview_ptm_visualization(
     )
     fig, messages = overview_plotter.create_overview_plot()
 
-    return dict(plots=[fig], messages=messages)
+    return dict(plots=[mark_as_fixed_layout(fig)], messages=messages)
+
+
+# --8<-- [end:create_overview_ptm_visualization]

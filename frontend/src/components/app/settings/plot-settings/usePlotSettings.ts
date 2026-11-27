@@ -32,6 +32,17 @@ export interface ComputedPlotSettings {
   textSize?: number;
 }
 
+/**
+ * Some plots (currently the PTM visualisations) place every shape and label in data units
+ * that map 1:1 onto the pixels of their own layout.width/height, and size their text in
+ * absolute pixels. Resizing them in the browser moves the geometry but not the text, so
+ * their labels start overlapping. The backend tags those figures via layout.meta and we
+ * leave their width, height and margins alone; the export scale still applies uniformly.
+ */
+export const hasFixedLayout = (layout: Partial<Layout> | undefined): boolean =>
+  // `meta` is a valid Plotly layout attribute but is missing from the bundled typings.
+  (layout as { meta?: { fixed_layout?: boolean } } | undefined)?.meta?.fixed_layout === true;
+
 export const usePlotSettings = (isOpen?: boolean) => {
   const notify = useNotification();
 
@@ -153,11 +164,14 @@ export const usePlotSettings = (isOpen?: boolean) => {
     const plotAsJson = JSON.stringify(plot);
 
     if (["jpeg", "png", "svg", "webp"].includes(settings.fileFormat)) {
+      const isFixed = hasFixedLayout(plot.layout);
       Plotly.downloadImage("plot-id", {
         format: settings.fileFormat,
         filename: fileName,
-        width: computedSettings.width,
-        height: computedSettings.height,
+        // A fixed-layout figure must be rasterised at its own canvas size; `scale` alone
+        // takes it up to export resolution without disturbing the layout.
+        width: (isFixed ? plot.layout.width : undefined) ?? computedSettings.width,
+        height: (isFixed ? plot.layout.height : undefined) ?? computedSettings.height,
         scale: scale,
       } as Plotly.DownloadImgopts).catch((error: unknown) => {
         console.error("Export as .", settings.fileFormat, " failed: ", error);

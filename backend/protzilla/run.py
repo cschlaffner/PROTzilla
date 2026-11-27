@@ -341,6 +341,7 @@ class Run:
     def current_form(self, new_form_values={}) -> Form:
         self.steps.current_step.form.update_values(new_form_values)
         self.steps.current_step.modify_form(self)
+        self.steps.remove_invalid_edges_for_step(self.steps.current_selected_step_id)
         return self.steps.current_step.form
 
     @property

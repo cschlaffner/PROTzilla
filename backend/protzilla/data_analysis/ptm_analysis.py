@@ -5,6 +5,7 @@ import re
 from backend.protzilla.utilities.transform_dfs import long_to_wide
 
 
+# --8<-- [start:ptms_per_sample]
 def ptms_per_sample(psm_df: pd.DataFrame) -> dict:
     """
     This function calculates the amount of every PTMs per sample.
@@ -22,6 +23,9 @@ def ptms_per_sample(psm_df: pd.DataFrame) -> dict:
     )
 
     return dict(ptm_df=modification_df)
+
+
+# --8<-- [end:ptms_per_sample]
 
 
 def ptms_per_protein_and_sample(psm_df: pd.DataFrame) -> dict:

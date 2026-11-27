@@ -3,6 +3,7 @@ import pandas as pd
 import pytest
 
 from backend.protzilla.constants.data_types import DataKey
+from backend.protzilla.constants.option_types import GroupValueRequirement
 from backend.protzilla.data_preprocessing.filter_proteins import (
     by_samples_missing,
     by_samples_missing_plot,
@@ -270,3 +271,154 @@ def test_keep_n_most_significant_proteins_with_less_rows_than_requested():
     result_df = result["differentially_expressed_proteins_df"]
 
     assert len(result_df) == 2
+
+
+@pytest.fixture
+def cell_line_protein_df():
+    """Two cell lines with three replicates each, plus one sample missing from the metadata."""
+    rows = []
+    intensities = {
+        # valid in every LineA replicate, missing throughout LineB
+        "ProteinOneGroup": [0.1, 0.2, 0.3, np.nan, np.nan, np.nan],
+        # valid everywhere
+        "ProteinBothGroups": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
+        # three valid values in LineA, but all of them identical
+        "ProteinTied": [0.5, 0.5, 0.5, np.nan, np.nan, np.nan],
+        # never measured
+        "ProteinAllMissing": [np.nan] * 6,
+    }
+    samples = ["Sample1", "Sample2", "Sample3", "Sample4", "Sample5", "Sample6"]
+    for protein, values in intensities.items():
+        for sample, value in zip(samples, values):
+            rows.append([sample, protein, value])
+    # only present in a sample that has no metadata row
+    rows.append(["Sample7", "ProteinUnlabeled", 0.9])
+
+    return pd.DataFrame(
+        rows, columns=["Sample", "Protein ID", "Intensity"]
+    ).sort_values(by=["Sample", "Protein ID"], ignore_index=True)
+
+
+@pytest.fixture
+def cell_line_metadata_df():
+    return pd.DataFrame(
+        {
+            "Sample": [
+                "Sample1",
+                "Sample2",
+                "Sample3",
+                "Sample4",
+                "Sample5",
+                "Sample6",
+            ],
+            "CellLine": ["LineA", "LineA", "LineA", "LineB", "LineB", "LineB"],
+            "Batch": ["Batch1", "Batch2", "Batch3", "Batch1", "Batch2", "Batch3"],
+        }
+    )
+
+
+def test_filter_proteins_by_values_per_group_keeps_protein_valid_in_at_least_one_group(
+    cell_line_protein_df, cell_line_metadata_df
+):
+    method_output = by_number_of_values_per_group(
+        cell_line_protein_df,
+        cell_line_metadata_df,
+        min_amount=2,
+        group_column="CellLine",
+        mode=GroupValueRequirement.AT_LEAST_ONE_GROUP,
+    )
+
+    assert "ProteinOneGroup" in method_output["remaining_proteins"]
+
+
+def test_filter_proteins_by_values_per_group_filters_protein_missing_in_one_group(
+    cell_line_protein_df, cell_line_metadata_df
+):
+    method_output = by_number_of_values_per_group(
+        cell_line_protein_df,
+        cell_line_metadata_df,
+        min_amount=2,
+        group_column="CellLine",
+        mode=GroupValueRequirement.EVERY_GROUP,
+    )
+
+    assert "ProteinOneGroup" in method_output["filtered_proteins"]
+    assert "ProteinBothGroups" in method_output["remaining_proteins"]
+
+
+def test_filter_proteins_by_values_per_group_counts_repeated_intensities_separately(
+    cell_line_protein_df, cell_line_metadata_df
+):
+    method_output = by_number_of_values_per_group(
+        cell_line_protein_df,
+        cell_line_metadata_df,
+        min_amount=3,
+        group_column="CellLine",
+        mode=GroupValueRequirement.AT_LEAST_ONE_GROUP,
+    )
+
+    assert "ProteinTied" in method_output["remaining_proteins"]
+
+
+def test_filter_proteins_by_values_per_group_reports_protein_without_any_values(
+    cell_line_protein_df, cell_line_metadata_df
+):
+    method_output = by_number_of_values_per_group(
+        cell_line_protein_df,
+        cell_line_metadata_df,
+        min_amount=1,
+        group_column="CellLine",
+        mode=GroupValueRequirement.AT_LEAST_ONE_GROUP,
+    )
+
+    assert "ProteinAllMissing" in method_output["filtered_proteins"]
+
+
+def test_filter_proteins_by_values_per_group_reports_protein_of_unlabeled_sample(
+    cell_line_protein_df, cell_line_metadata_df
+):
+    method_output = by_number_of_values_per_group(
+        cell_line_protein_df,
+        cell_line_metadata_df,
+        min_amount=1,
+        group_column="CellLine",
+        mode=GroupValueRequirement.AT_LEAST_ONE_GROUP,
+    )
+
+    assert "ProteinUnlabeled" in method_output["filtered_proteins"]
+    assert "ProteinUnlabeled" not in method_output["protein_df"]["Protein ID"].tolist()
+
+
+def test_filter_proteins_by_values_per_group_uses_the_selected_group_column(
+    cell_line_protein_df, cell_line_metadata_df
+):
+    by_cell_line = by_number_of_values_per_group(
+        cell_line_protein_df,
+        cell_line_metadata_df,
+        min_amount=1,
+        group_column="CellLine",
+        mode=GroupValueRequirement.EVERY_GROUP,
+    )
+    by_batch = by_number_of_values_per_group(
+        cell_line_protein_df,
+        cell_line_metadata_df,
+        min_amount=1,
+        group_column="Batch",
+        mode=GroupValueRequirement.EVERY_GROUP,
+    )
+
+    # LineB has no values at all, but every batch contains one of the LineA replicates
+    assert "ProteinOneGroup" in by_cell_line["filtered_proteins"]
+    assert "ProteinOneGroup" in by_batch["remaining_proteins"]
+
+
+def test_filter_proteins_by_values_per_group_rejects_unknown_group_column(
+    cell_line_protein_df, cell_line_metadata_df
+):
+    with pytest.raises(ValueError, match="CellType"):
+        by_number_of_values_per_group(
+            cell_line_protein_df,
+            cell_line_metadata_df,
+            min_amount=1,
+            group_column="CellType",
+        )

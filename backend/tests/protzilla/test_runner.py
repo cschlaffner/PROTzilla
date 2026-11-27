@@ -67,7 +67,13 @@ def mock_perform_method(runner: Runner):
     def mock_current_parameters(*args, **kwargs):
         # saving parameters for later inspection
         mock_perform.methods.append(str(runner.run.current_step))
-        mock_perform.inputs.append(runner.run.current_step.form_inputs)
+        mock_perform.inputs.append(
+            {
+                key: value
+                for key, value in runner.run.current_step.form_inputs.items()
+                if key != "step_name"
+            }
+        )
 
         runner.run.current_step.calculation_status = "complete"
 

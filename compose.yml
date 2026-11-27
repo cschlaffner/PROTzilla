@@ -4,6 +4,7 @@ services:
     build: .
     ports:
       - "8000:8000"
+      - "127.0.0.1:5175:5175"
 
     # volumes:
     # Use this if you want to persistently store user data
@@ -17,12 +18,19 @@ services:
     build:
       context: .
       dockerfile: "backend/Dockerfile.dev"
+      additional_contexts:
+        # local checkout of the protein_sequencing package, installed editable
+        ptmvis: "../ptm-visualization"
     volumes:
       - "./backend:/home/prot/zilla/backend:Z" # :Z is required for SELinux and should be ignored everywhere else
+      - "../ptm-visualization:/home/prot/zilla/ptm-visualization:Z"
+      - "./mcp-server:/home/prot/zilla/mcp-server:Z"
       - "./runner_cli.py:/home/prot/zilla/runner_cli.py:Z"
+      - "./pytest.ini:/home/prot/zilla/pytest.ini:Z"
       - "uniprot:/home/prot/zilla/backend/user_data/external_data/uniprot"
     ports:
       - "5678:5678"
+      - "127.0.0.1:5175:5175"
     networks:
       - "dev-network"
     healthcheck:
@@ -66,6 +74,14 @@ services:
     entrypoint: ["pnpm", "run", "storybook", "--no-open"]
     ports:
       - "6006:6006"
+
+  docs:
+    image: squidfunk/mkdocs-material:9.7.6
+    command: ["serve", "--livereload", "--dev-addr=0.0.0.0:8000"]
+    volumes:
+      - ".:/docs:Z"
+    ports:
+      - "5174:8000"
 
 volumes:
   uniprot:

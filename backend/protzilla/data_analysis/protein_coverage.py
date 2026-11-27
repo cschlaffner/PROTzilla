@@ -132,6 +132,7 @@ def match_peptide_to_protein_ids(
     return hits
 
 
+# --8<-- [start:plot_protein_coverage]
 def plot_protein_coverage(
     fasta_df: pd.DataFrame,
     peptide_df: pd.DataFrame,
@@ -241,6 +242,9 @@ def plot_protein_coverage(
     )
 
     return {"plots": figures}
+
+
+# --8<-- [end:plot_protein_coverage]
 
 
 def build_coverage_plot(

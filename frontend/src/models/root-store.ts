@@ -5,6 +5,7 @@ import { action, observable } from "mobx";
 
 import { API_ROOT } from "../constants";
 import { defaultStorageClient } from "./sync-engine";
+import { attachCSRFToken } from "../utils/api-call";
 import { RESTAdapter } from "./sync-engine/rest-adapter";
 
 // Adapted from I18nMessage
@@ -14,7 +15,7 @@ export interface Message {
 }
 
 export class RootStore {
-  public axios = axios.create({ baseURL: API_ROOT });
+  public axios = attachCSRFToken(axios.create({ baseURL: API_ROOT }));
 
   public client = defaultStorageClient;
 

@@ -1,4 +1,7 @@
+import shutil
 from abc import ABC
+from pathlib import Path
+
 from typing_extensions import override
 
 from backend.protzilla.constants.option_types import (
@@ -83,6 +86,9 @@ from backend.protzilla.data_analysis.ptm_quantification.multiflex import (
 )
 from backend.protzilla.data_analysis.ptm_visualization.ptm_details_plot import (
     create_details_ptm_visualization,
+)
+from backend.protzilla.data_analysis.ptm_visualization.ptm_vis_utils import (
+    override_plot_settings,
 )
 from backend.protzilla.data_analysis.ptm_visualization.ptm_overview_plot import (
     create_overview_ptm_visualization,
@@ -2254,6 +2260,84 @@ class PTMsProteinAndPerSample(PeptideAnalysisStep):
 class _PTMVisualizationStep(DataAnalysisPlotStep, ABC):
     output_keys = []
     operation: StepOperation = StepOperation.PTM_VISUALIZATION
+    # Uploaded files live in the upload temp dir. The PTM plots need FASTA and regions again whenever they are
+    # re-rendered for export (see render_plots_with_settings), so the step keeps its own copy in the run.
+    file_input_keys = ("fasta_file_path", "regions_file_path")
+    persisted_inputs_dir_name = "ptm_inputs"
+
+    def _persisted_inputs_dir(self, steps) -> Path | None:
+        disk_operator = getattr(steps, "disk_operator", None)
+        if disk_operator is None:
+            return None
+        return (
+            Path(disk_operator.run_dir)
+            / self.persisted_inputs_dir_name
+            / self.instance_identifier
+        )
+
+    def _persist_input_files(self, steps) -> None:
+        target_dir = self._persisted_inputs_dir(steps)
+        if target_dir is None:
+            return
+        current_names = set()
+        for key in self.file_input_keys:
+            source = self.form_inputs.get(key)
+            if not source:
+                continue
+            current_names.add(Path(source).name)
+            if Path(source).is_file():
+                target_dir.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source, target_dir / Path(source).name)
+        # Drop copies of files that were replaced by a different upload
+        if target_dir.is_dir():
+            for file in target_dir.iterdir():
+                if file.is_file() and file.name not in current_names:
+                    file.unlink()
+
+    def on_remove(self, steps) -> None:
+        target_dir = self._persisted_inputs_dir(steps)
+        if target_dir is not None:
+            shutil.rmtree(target_dir, ignore_errors=True)
+
+    def _resolve_input_files(self, steps) -> None:
+        """Point self.inputs at the persisted copies of input files that no longer exist."""
+        target_dir = self._persisted_inputs_dir(steps)
+        if target_dir is None:
+            return
+        for key in self.file_input_keys:
+            source = self.inputs.get(key)
+            if not source or Path(source).is_file():
+                continue
+            persisted = target_dir / Path(source).name
+            if persisted.is_file():
+                self.inputs[key] = persisted
+
+    def calculate(self, steps) -> bool:
+        self._persist_input_files(steps)
+        self._steps_for_input_resolution = steps
+        try:
+            return super().calculate(steps)
+        finally:
+            self._steps_for_input_resolution = None
+
+    def get_form_values(self) -> None:
+        super().get_form_values()
+        steps = getattr(self, "_steps_for_input_resolution", None)
+        if steps is not None:
+            self._resolve_input_files(steps)
+
+    def render_plots_with_settings(self, steps, plot_settings: dict) -> list:
+        """Render the plots of this step again with the given plot settings, without storing them.
+
+        The rendering of PTM plots is tied to absolute pixel values that depend on figure size and text size, so they
+        need a recalculation if the figure should be resized for export.
+        """
+        super().get_form_values()
+        self._resolve_input_files(steps)
+        self.insert_dataframes(steps)
+        with override_plot_settings(plot_settings):
+            output = self.plot_method(**self.plot_input)
+        return output["plots"] if isinstance(output, dict) else output
 
     @classmethod
     def get_form_fields(cls) -> list[FormField]:

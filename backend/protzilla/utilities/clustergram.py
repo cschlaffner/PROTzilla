@@ -23,7 +23,6 @@ from plotly import subplots
 from sklearn.impute import SimpleImputer
 from backend.protzilla.utilities.utilities import lerp
 
-
 HEATMAP_LOW_COLOR = "#053061"
 HEATMAP_HIGH_COLOR = "#67001f"
 
@@ -97,7 +96,7 @@ def Clustergram(
     kwargs.pop("computed_traces")
     kwargs.pop("generate_curves_dict")
 
-    (fig, ct, curves_dict) = _Clustergram(**kwargs).figure(
+    fig, ct, curves_dict = _Clustergram(**kwargs).figure(
         computed_traces=computed_traces
     )
 
@@ -461,7 +460,7 @@ class _Clustergram:
                 showticklabels=False,
             )
 
-        (row_dendro_traces, col_dendro_traces) = self._sort_traces(dt["row"], dt["col"])
+        row_dendro_traces, col_dendro_traces = self._sort_traces(dt["row"], dt["col"])
 
         for i in range(len(col_dendro_traces)):
             cdt = col_dendro_traces[i]

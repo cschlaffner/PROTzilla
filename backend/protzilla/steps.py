@@ -12,7 +12,7 @@ import yaml
 
 from backend.main import settings
 from backend.protzilla.constants.data_types import DataKey, StepID
-from backend.protzilla.form import FormInputType, Form, InputField
+from backend.protzilla.form import FormInputType, Form, InputField, TextField
 from backend.protzilla.utilities.utilities import format_trace, name_to_title
 
 # to avoid circular imports
@@ -35,6 +35,7 @@ class Section(StrEnum):
     DATA_PREPROCESSING = "data_preprocessing"
     DATA_ANALYSIS = "data_analysis"
     DATA_INTEGRATION = "data_integration"
+    CUSTOM = "custom"
     NOT_CATEGORIZED = "others"
 
 
@@ -123,6 +124,7 @@ class Step(ABC):
         self.disk_write_mutex = Lock()
 
         self.form = self.create_form()
+        self.add_step_name_field()
 
         # Keeps track of calculations to avoid repetitive dumping
         self.artifact_versions = {
@@ -142,6 +144,17 @@ class Step(ABC):
             )
             instance_identifier = StepID(self.__class__.__name__)
         self.instance_identifier: StepID = instance_identifier
+
+    def add_step_name_field(self) -> None:
+        if "step_name" in self.form:
+            return
+        name_field = TextField(
+            name="step_name",
+            label="Step name",
+            value=self.display_name,
+        )
+        self.form.input_fields = [name_field, *self.form.input_fields]
+        self.form._field_map[name_field.name] = name_field
 
     def __repr__(self):
         return self.__class__.__name__
@@ -175,6 +188,13 @@ class Step(ABC):
     @abstractmethod
     def calc_method(self):
         raise NotImplementedError("This method must be implemented in a subclass.")
+
+    def on_remove(self, steps: StepManager) -> None:
+        """
+        Called right before the step is removed from the run. Subclasses that store files of their
+        own in the run folder can override this to delete them.
+        :param steps: The StepManager object that contains all steps
+        """
 
     def calculate(self, steps: StepManager) -> bool:
         """
@@ -266,8 +286,8 @@ class Step(ABC):
         for source, target, data in steps.graph.in_edges(
             self.instance_identifier, data=True
         ):
-            source_handle: DataKey = data["source_handle"]
-            target_handle: DataKey = data["target_handle"]
+            source_handle: str = data["source_handle"]
+            target_handle: str = data["target_handle"]
             source_output = steps.get_step_output(
                 output_key=source_handle, instance_identifier=source
             )
@@ -285,7 +305,7 @@ class Step(ABC):
 
     def input_source(
         self, steps: StepManager, input_key: DataKey
-    ) -> tuple[StepID | None, DataKey | None]:
+    ) -> tuple[StepID | None, str | None]:
         """
         Retrieves the step ID and source handle that serve as the source for a specific input
 
@@ -304,7 +324,7 @@ class Step(ABC):
                 f"Multiple inputs for key {input_key} of step {self.instance_identifier} found: {[edge[0] for edge in edges]}"
             )
         source, _, _, data = edges[0]
-        return source, DataKey(data["source_handle"])
+        return source, data["source_handle"]
 
     def get_input(self, steps: StepManager, input_key: DataKey):
         source_step, source_handle = self.input_source(steps, input_key)

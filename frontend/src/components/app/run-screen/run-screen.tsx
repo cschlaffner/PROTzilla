@@ -25,6 +25,7 @@ import { Col } from "react-grid-system";
 import { useLocation, useNavigate } from "react-router-dom";
 import { styled } from "styled-components";
 
+import { API_ROOT, DOCUMENTATION_URL } from "../../../constants";
 import { H3 } from "../../core/shared/text";
 
 const StyledNavbar = styled(Navbar)`
@@ -83,6 +84,7 @@ export const RunScreen: React.FC = () => {
   const [runData, setRunData] = useState(emptyRunData);
   const [plots, setPlots] = useState<Figure[]>();
   const [selectedPlot, setSelectedPlot] = useState<Figure>({ data: [], layout: {} });
+  const [selectedPlotIndex, setSelectedPlotIndex] = useState(0);
   const [availableTables, setAvailableTables] = useState<StepOutputInfo[]>();
 
   // Static PNGs sent as base64
@@ -191,17 +193,30 @@ export const RunScreen: React.FC = () => {
     void fetchData();
   }, [getRunData, getStepPlots, getCurrentStepOutputLabels]);
 
-  const onFormSubmit = () => {
+  const onFormSubmit = useCallback(() => {
     setAvailableTables(undefined);
     setAvailableImages([]);
     setPlots(undefined);
     void getRunData();
     void getStepPlots();
     void getCurrentStepOutputLabels();
-  };
+  }, [getRunData, getStepPlots, getCurrentStepOutputLabels]);
 
-  const handleDownloadPlot = (plot: Figure) => {
+  useEffect(() => {
+    if (!runName) return;
+
+    const updates = new EventSource(
+      `${API_ROOT}run_updates/?run_name=${encodeURIComponent(runName)}`,
+    );
+    updates.onmessage = onFormSubmit;
+    return () => {
+      updates.close();
+    };
+  }, [runName, onFormSubmit]);
+
+  const handleDownloadPlot = (plot: Figure, index: number) => {
     setSelectedPlot(plot);
+    setSelectedPlotIndex(index);
     openDownloadModal();
   };
 
@@ -253,7 +268,7 @@ export const RunScreen: React.FC = () => {
                 text="Download plot"
                 style={{ width: "auto", alignSelf: "flex-start" }}
                 onClick={() => {
-                  handleDownloadPlot(plot);
+                  handleDownloadPlot(plot, index);
                 }}
               />
             </StyledContentDiv>
@@ -263,6 +278,8 @@ export const RunScreen: React.FC = () => {
             onClose={closeDownloadModal}
             data={selectedPlot.data}
             layout={selectedPlot.layout}
+            runName={runName}
+            plotIndex={selectedPlotIndex}
           />
         </>
       ) : (
@@ -335,14 +352,22 @@ export const RunScreen: React.FC = () => {
   ].filter(Boolean) as { name: string; value: React.ReactNode }[];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", overflow: "hidden" }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        width: "100%",
+        height: "100vh",
+        overflow: "hidden",
+      }}
+    >
       <StyledNavbar
         showRunInformation={true}
         title={runName}
         memoryUsage={runData.memory_usage}
         onNavigateHome={() => void navigate("/")}
         onOpenSettings={() => void navigate("/")}
-        onOpenHelp={() => window.open("https://github.com/cschlaffner/PROTzilla/wiki/User-Guide")}
+        onOpenHelp={() => window.open(DOCUMENTATION_URL)}
       />
 
       <StyledCardRow>
@@ -358,7 +383,7 @@ export const RunScreen: React.FC = () => {
             }}
           />
         </StyledFlexColumn>
-        <StyledFlexColumn style={{ flex: 1 }}>
+        <StyledFlexColumn style={{ flex: 1, minWidth: 0 }}>
           {components.length ? (
             <StyledCol>
               <SwitchCard

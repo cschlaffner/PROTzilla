@@ -115,6 +115,7 @@ def merge_up_down_regulated_dfs_restring(up_df, down_df):
     return enriched
 
 
+# --8<-- [start:GO_analysis_with_STRING]
 def GO_analysis_with_STRING(
     protein_df,
     organism,
@@ -303,6 +304,9 @@ def GO_analysis_with_STRING(
     return {"enrichment_df": merged_df}
 
 
+# --8<-- [end:GO_analysis_with_STRING]
+
+
 def merge_up_down_regulated_dfs_gseapy(up_enriched, down_enriched):
     """
     A method that merges the results for up- and downregulated proteins for the GSEApy
@@ -466,6 +470,7 @@ class GOAnalysisWithEnrichrBackgroundType(Enum):
     all_genes = "Use all genes in the gene set"
 
 
+# --8<-- [start:GO_analysis_with_Enrichr]
 def GO_analysis_with_Enrichr(
     protein_df,
     organism,
@@ -708,12 +713,16 @@ def GO_analysis_with_Enrichr(
     }
 
 
+# --8<-- [end:GO_analysis_with_Enrichr]
+
+
 class GOAnalysisOflineBackgroundType(Enum):
     upload_a_file = "Upload a file (recommended)"
     number_of_expressed_genes = "Specify number of expressed genes (not recommended)"
     all_genes = "Use all genes in the gene set"
 
 
+# --8<-- [start:GO_analysis_offline]
 def GO_analysis_offline(
     protein_df,
     gene_sets_path,
@@ -908,3 +917,6 @@ def GO_analysis_offline(
         out_dict["filtered_groups"] = filtered_groups
         return out_dict
     return out_dict
+
+
+# --8<-- [end:GO_analysis_offline]

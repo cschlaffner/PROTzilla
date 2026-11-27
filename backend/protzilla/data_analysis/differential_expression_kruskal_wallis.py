@@ -14,6 +14,7 @@ from backend.protzilla.data_analysis.differential_expression_helper import (
 from backend.protzilla.utilities.transform_dfs import long_to_wide
 
 
+# --8<-- [start:kruskal_wallis_test_on_intensity_data]
 def kruskal_wallis_test_on_intensity_data(
     protein_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
@@ -72,6 +73,10 @@ def kruskal_wallis_test_on_intensity_data(
     )
 
 
+# --8<-- [end:kruskal_wallis_test_on_intensity_data]
+
+
+# --8<-- [start:kruskal_wallis_test_on_ptm_data]
 def kruskal_wallis_test_on_ptm_data(
     ptm_df: pd.DataFrame,
     metadata_df: pd.DataFrame,
@@ -122,6 +127,9 @@ def kruskal_wallis_test_on_ptm_data(
         corrected_alpha=output["corrected_alpha"],
         messages=output["messages"],
     )
+
+
+# --8<-- [end:kruskal_wallis_test_on_ptm_data]
 
 
 def kruskal_wallis_test_on_columns(
